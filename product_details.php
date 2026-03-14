@@ -16,3 +16,19 @@
     <a href="/product_details.php?id=<?php echo $product_id; ?>" style="text-decoration:none; color:#000;">
         <?php echo htmlspecialchars($product['name']); ?>
     </a>
+<div class="product-detail">
+ 
+        <!-- LEFT COLUMN -->
+        <div class="product-detail-left">
+            <h2><?php echo htmlspecialchars($product['name']); ?></h2>
+ 
+            <!-- Main Image -->
+            <div style="position:relative; width:100%; max-width:500px; margin:20px auto 10px auto;">
+                <img id="main-image"
+                    src="/assets/img/<?php echo htmlspecialchars($product['image']); ?>"
+                    alt="<?php echo htmlspecialchars($product['name']); ?>"
+                    style="width:100%; max-width:500px; height:500px; object-fit:cover; display:block; border-radius:12px;">
+                <span style="position:absolute; right:0; top:0; background:rgba(183,94,31,0.9); color:#fff; padding:8px 16px; border-top-right-radius:12px; font-size:20px; font-weight:bold;">
+                    <?php echo number_format($product['price']); ?> VND
+                </span>
+            </div>
