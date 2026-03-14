@@ -56,3 +56,26 @@
                         (<?php echo $total_reviews; ?> review<?php echo $total_reviews == 1 ? '' : 's'; ?>)
                     </span>
                 </div>
+ <?php if ($review_result && $review_result->num_rows > 0): ?>
+                    <?php while ($review = $review_result->fetch_assoc()): ?>
+                        <div style="border-bottom:1px solid #eee; padding:14px 0;">
+                            <div>
+                                <?php for ($i = 1; $i <= 5; $i++) {
+                                    echo '<span style="color:' . ($i <= $review['rating'] ? '#f7b731' : '#ddd') . '; font-size:1.1em;">&#9733;</span>';
+                                } ?>
+                                <span style="color:#888; font-size:0.97em; margin-left:10px;">
+                                    <?php echo htmlspecialchars($review['full_name'] ?? 'Customer'); ?>
+                                    - <?php echo date('Y-m-d', strtotime($review['created_at'])); ?>
+                                </span>
+                            </div>
+                            <div style="margin-top:6px; color:#333;">
+                                <?php echo nl2br(htmlspecialchars($review['comment'])); ?>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div style="color:#888; margin:18px 0;">No reviews yet for this product.</div>
+                <?php endif; ?>
+            </div>
+        </div>
+ 
