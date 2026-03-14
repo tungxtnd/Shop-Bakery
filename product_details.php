@@ -32,3 +32,13 @@
                     <?php echo number_format($product['price']); ?> VND
                 </span>
             </div>
+ <!-- Thumbnail Gallery -->
+            <div class="thumbnail-gallery" style="display:flex; justify-content:flex-start; gap:12px; max-width:500px; margin:15px auto 30px auto; overflow-x:auto;">
+                <?php foreach ($gallery_images as $index => $img_name): ?>
+                    <img src="/assets/img/<?php echo htmlspecialchars($img_name); ?>"
+                        class="thumb-item"
+                        onclick="changeMainImage(this, '/assets/img/<?php echo htmlspecialchars($img_name); ?>')"
+                        style="width:55px; height:55px; margin:0 !important; display:block; flex-shrink:0; object-fit:cover; border-radius:6px; cursor:pointer; border:2px solid <?php echo $index === 0 ? '#9d503b' : 'transparent'; ?>; transition:border-color 0.2s;"
+                        alt="Gallery Image">
+                <?php endforeach; ?>
+            </div>
