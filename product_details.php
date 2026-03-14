@@ -1,3 +1,78 @@
+<?php
+session_start();
+include 'connectdb.php';
+
+// Get product ID from URL
+$product_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+// Fetch product info
+$sql = "SELECT name, image, price, description FROM products WHERE id = $product_id AND status = 1 LIMIT 1";
+$result = $conn->query($sql);
+if ($result && $result->num_rows > 0) {
+    $product = $result->fetch_assoc();
+} else {
+    echo "<p style='text-align:center;margin-top:40px;'>Product not found.</p>";
+    exit;
+}
+
+// Fetch gallery images
+$gallery_images = [];
+$gallery_images[] = $product['image'];
+$gal_sql = "SELECT image_name FROM product_images WHERE product_id = $product_id";
+$gal_result = $conn->query($gal_sql);
+if ($gal_result && $gal_result->num_rows > 0) {
+    while ($gal_row = $gal_result->fetch_assoc()) {
+        $gallery_images[] = $gal_row['image_name'];
+    }
+}
+
+// Fetch cards from services table
+$cards = [];
+$card_sql = "SELECT id, name, price, image, description FROM services";
+$card_result = $conn->query($card_sql);
+if ($card_result && $card_result->num_rows > 0) {
+    while ($row = $card_result->fetch_assoc()) {
+        $cards[] = $row;
+    }
+}
+
+// Fetch reviews
+$avg_sql = "SELECT AVG(rating) as avg_rating, COUNT(*) as total_reviews FROM reviews WHERE product_id = $product_id";
+$avg_result = $conn->query($avg_sql);
+$avg_row = $avg_result ? $avg_result->fetch_assoc() : null;
+$avg_rating = $avg_row && $avg_row['avg_rating'] ? round($avg_row['avg_rating'], 2) : 0;
+$total_reviews = $avg_row ? intval($avg_row['total_reviews']) : 0;
+
+$review_sql = "SELECT r.rating, r.comment, r.created_at, u.full_name
+               FROM reviews r
+               LEFT JOIN users u ON r.user_id = u.id
+               WHERE r.product_id = $product_id
+               ORDER BY r.created_at DESC";
+$review_result = $conn->query($review_sql);
+
+// Handle Add to Cart
+if (isset($_POST['add_to_cart'])) {
+    if (!isset($_SESSION['user_id'])) {
+        echo "<script>alert('You need to log in first!'); window.location='/views/auth/login.php';</script>";
+        exit;
+    }
+    $user_id     = $_SESSION['user_id'];
+    $quantity    = isset($_POST['quantity'])     ? intval($_POST['quantity'])    : 1;
+    $service_id  = isset($_POST['card'])         ? intval($_POST['card'])        : null;
+    $card_message = isset($_POST['card_message']) ? $_POST['card_message']       : '';
+
+    $stmt = $conn->prepare("INSERT INTO cart_items (user_id, product_id, quantity, service_id, card_message) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("iiiis", $user_id, $product_id, $quantity, $service_id, $card_message);
+    if ($stmt->execute()) {
+        echo "<script>alert('Add to cart successfully!'); window.location='/views/customer/cart.php';</script>";
+        exit;
+    } else {
+        echo "<script>alert('Failed to add to cart.');</script>";
+    }
+}
+
+$shipping_fee = 20000;
+
 !DOCTYPE html>
 <html lang="en">
 <head>
