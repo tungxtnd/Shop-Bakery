@@ -214,3 +214,172 @@ $shipping_fee = 20000;
 </body>
 <?php include 'includes/footer.php'; ?>
 </html>
+/* =============================================
+   product_details.css
+   Styles for Product Details page
+   ============================================= */
+
+body {
+    clear: both;
+    margin: 0;
+    background-color: #fff;
+    font-family: 'Times New Roman', serif;
+}
+
+/* Main container */
+.product-detail {
+    width: 90%;
+    margin: 40px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px #eee;
+    overflow: hidden;
+}
+
+/* Two-column layout */
+.product-detail-left,
+.product-detail-right {
+    float: left;
+    width: 50%;
+}
+
+.product-detail-left p {
+    text-align: center;
+}
+
+.product-detail h2 {
+    text-align: center;
+    color: #333;
+}
+
+.product-detail img {
+    width: 100%;
+    max-width: 500px;
+    display: block;
+    margin: 20px auto;
+    border-radius: 8px;
+}
+
+.product-detail p {
+    font-size: 16px;
+    color: #000;
+}
+
+/* Back link button */
+.product-detail a {
+    display: inline-block;
+    margin-top: 20px;
+    color: #fff;
+    background: #840000;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.product-detail a:hover {
+    background: #d84372;
+}
+
+/* Card / Gift selection */
+.card {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.card input[type="radio"] {
+    display: none;
+}
+
+.card label {
+    border: 2px solid #ccc;
+    border-radius: 2px;
+    width: 150px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.card label.selected {
+    border-color: #840000;
+    box-shadow: 0 0 8px #e75480;
+}
+
+.card label img {
+    width: 100%;
+    height: auto;
+    border-radius: 2px 2px 0 0;
+}
+// =============================================
+// product_details.js
+// Handles: image gallery, total price, cart toggle, checkout
+// =============================================
+
+// Change main image when clicking thumbnail
+function changeMainImage(element, newSrc) {
+    document.getElementById('main-image').src = newSrc;
+    document.querySelectorAll('.thumb-item').forEach(function(thumb) {
+        thumb.style.borderColor = 'transparent';
+    });
+    element.style.borderColor = '#840000';
+}
+
+// Recalculate total = (price × qty) + card price + shipping
+function updateTotal() {
+    const price       = parseInt(document.getElementById('total-price').getAttribute('data-price'));
+    const qty         = parseInt(document.getElementById('quantity').value) || 1;
+    const cardRadio   = document.querySelector('input[name="card"]:checked');
+    const cardPrice   = cardRadio ? parseInt(cardRadio.getAttribute('data-card-price')) : 0;
+    const shippingFee = parseInt(document.getElementById('shipping-fee').getAttribute('data-fee')) || 0;
+
+    const total = price * qty + cardPrice + shippingFee;
+    document.getElementById('total-price').textContent = total.toLocaleString() + ' VND';
+}
+
+// Update total when quantity changes
+document.getElementById('quantity').addEventListener('input', updateTotal);
+
+// Update total when card selection changes
+document.querySelectorAll('input[name="card"]').forEach(function(radio) {
+    radio.addEventListener('change', updateTotal);
+});
+
+// Toggle card selection (click again to deselect)
+document.querySelectorAll('.card label').forEach(function(label) {
+    label.addEventListener('click', function(e) {
+        const input = this.querySelector('input[type="radio"]');
+        if (input.checked) {
+            // Deselect if already selected
+            input.checked = false;
+            document.querySelectorAll('.card label').forEach(l => l.classList.remove('selected'));
+        } else {
+            // Select this card
+            document.querySelectorAll('.card label').forEach(l => l.classList.remove('selected'));
+            input.checked = true;
+            this.classList.add('selected');
+        }
+        updateTotal();
+        e.preventDefault();
+    });
+});
+
+// Run on page load
+updateTotal();
+
+// Checkout button — build URL with params and redirect
+document.getElementById('checkout-btn').addEventListener('click', function() {
+    const productId = document.getElementById('total-price').getAttribute('data-price') !== undefined
+        ? new URLSearchParams(window.location.search).get('id')
+        : 0;
+    const quantity  = document.getElementById('quantity').value || 1;
+    const card      = document.querySelector('input[name="card"]:checked');
+    const cardId    = card ? card.value : '';
+    const message   = encodeURIComponent(document.querySelector('input[name="card_message"]').value || '');
+
+    let url = `/views/customer/pay.php?id=${productId}&quantity=${quantity}`;
+    if (cardId)  url += `&card=${cardId}`;
+    if (message) url += `&message=${message}`;
+
+    window.location.href = url;
+});
