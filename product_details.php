@@ -78,4 +78,64 @@
                 <?php endif; ?>
             </div>
         </div>
+ <!-- RIGHT COLUMN -->
+        <div class="product-detail-right">
+            <p><?php echo nl2br(htmlspecialchars($product['description'])); ?></p>
  
+            <form method="post" id="cart-form">
+                <p>Quantity:
+                    <input type="number" id="quantity" name="quantity" value="1" min="1"
+                        style="width:60px; padding:5px; border-radius:4px; border:1px solid #ccc;">
+                </p>
+ 
+                <p>Pick a card (optional):</p>
+                <div class="card">
+                    <?php foreach ($cards as $card): ?>
+                        <label data-card-id="<?php echo $card['id']; ?>"
+                            style="text-align:center; display:inline-block; border-radius:2px;">
+                            <input type="radio" name="card"
+                                value="<?php echo $card['id']; ?>"
+                                data-card-price="<?php echo $card['price']; ?>">
+                            <div>
+                                <img src="/assets/img/<?php echo htmlspecialchars($card['image']); ?>"
+                                    alt="<?php echo htmlspecialchars($card['name']); ?>"
+                                    style="width:150px; height:auto; display:block; margin:0;">
+                                <div><?php echo htmlspecialchars($card['name']); ?></div>
+                                <div style="color:#840000;">+ <?php echo number_format($card['price']); ?> VND</div>
+                            </div>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+ 
+                <p style="margin-top:15px;">Card message (optional):</p>
+                <input type="text" name="card_message"
+                    style="width:100%; border-radius:4px; border:1px solid #ccc; padding:8px;"
+                    placeholder="Leave your message here...">
+ 
+                <p style="margin-top:15px; font-size:18px;">Shipping Fee:
+                    <b id="shipping-fee" data-fee="<?php echo $shipping_fee; ?>" style="color:#840000;">
+                        <?php echo number_format($shipping_fee); ?> VND
+                    </b>
+                </p>
+                <p style="margin-top:15px;">Total Price:</p>
+                <p style="font-size:20px; color:#840000;">
+                    <b id="total-price" data-price="<?php echo $product['price']; ?>">
+                        <?php echo number_format($product['price']); ?> VND
+                    </b>
+                </p>
+ 
+                <input type="submit" name="add_to_cart" value="🛒 Add to Cart"
+                    style="width:30%; background-color:#9d503b; color:white; padding:14px 20px; border:none; border-radius:4px; cursor:pointer;">
+                <button type="button" id="checkout-btn"
+                    style="width:30%; background-color:#840000; color:white; padding:14px 20px; border:none; border-radius:4px; cursor:pointer; margin-left:10px;">
+                    Checkout
+                </button>
+            </form>
+        </div>
+ 
+    </div>
+ 
+    <script src="/assets/js/product_details.js"></script>
+</body>
+<?php include 'includes/footer.php'; ?>
+</html>
