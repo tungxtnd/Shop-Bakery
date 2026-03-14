@@ -42,3 +42,17 @@
                         alt="Gallery Image">
                 <?php endforeach; ?>
             </div>
+<!-- Customer Reviews -->
+            <div style="margin-top:40px;">
+                <h3 style="color:#840000;">Customer Reviews</h3>
+                <div style="margin-bottom:18px;">
+                    <span style="font-size:1.25em; font-weight:bold; color:#d17c7c;">
+                        <?php echo $avg_rating; ?> / 5.0
+                    </span>
+                    <?php for ($i = 1; $i <= 5; $i++) {
+                        echo '<span style="color:' . ($i <= round($avg_rating) ? '#f7b731' : '#ddd') . '; font-size:1.2em;">&#9733;</span>';
+                    } ?>
+                    <span style="color:#888; font-size:1em; margin-left:10px;">
+                        (<?php echo $total_reviews; ?> review<?php echo $total_reviews == 1 ? '' : 's'; ?>)
+                    </span>
+                </div>
