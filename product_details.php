@@ -10,3 +10,9 @@
 <body>
     <?php include 'includes/header.php'; ?>
     <br>
+    <!-- Breadcrumb -->
+    <a href="/homepage.php" style="text-decoration:none; margin-left:2%; color:#000;">Home</a> /
+    <a href="/shop.php" style="text-decoration:none; color:#000;">All Bouquets</a> /
+    <a href="/product_details.php?id=<?php echo $product_id; ?>" style="text-decoration:none; color:#000;">
+        <?php echo htmlspecialchars($product['name']); ?>
+    </a>
