@@ -32,7 +32,7 @@ Layer	Technology
 Frontend	HTML, CSS, JavaScript
 Backend	PHP
 Database	MySQL
-Server	Apache (XAMPP)
+Server	Apache (laragon)
 
 **Project Structure**
 Shop-Bakery/
@@ -53,7 +53,7 @@ Shop-Bakery/
 1.	Clone the repository
 2.	git clone https://github.com/tungxtnd/Shop-Bakery.git
 3.	Move to your server directory
-4.	# For XAMPP on Windows
+4.	# For Laragon on Windows
 5.	mv Shop-Bakery C:/xampp/htdocs/
 6.	Import the database
 o	Open phpMyAdmin → http://localhost/phpmyadmin
@@ -66,7 +66,7 @@ $user     = "root";
 $password = "";
 $dbname   = "shop_bakery";
 8.	Run the project
-o	Start Apache and MySQL in XAMPP
+o	Start Apache and MySQL in Laragon
 o	Visit: http://localhost/Shop-Bakery/homepage.php
 
 **Database Tables**
@@ -81,7 +81,7 @@ order_details	Items within each order
 reviews	Product reviews and ratings
 
 **Contributors**
-8 contributors — Capstone Project II | Group 2 | INS306402
+8 contributors — Capstone Project II | Group 5 | INS306402
 
 **License**
 This project is built for academic purposes as part of the Capstone Project II course.
