@@ -54,17 +54,17 @@ Shop-Bakery/
 2.	git clone https://github.com/tungxtnd/Shop-Bakery.git
 3.	Move to your server directory
 4.	# For Laragon on Windows
-5.	mv Shop-Bakery C:/xampp/htdocs/
+5.	mv Shop-Bakery C:/laragon/www/
 6.	Import the database
-o	Open phpMyAdmin → http://localhost/phpmyadmin
-o	Create a new database: shop_bakery
+o	Open Laragon → http://Shop-Bakery.test
+o	Create a new database: ql_bakery
 o	Import the .sql file from the /database folder
 7.	Configure database connection
 Open connectdb.php and update your credentials:
 $host     = "localhost";
-$user     = "root";
-$password = "";
-$dbname   = "shop_bakery";
+$user     = "root_user";
+$password = "admin123";
+$dbname   = "ql_bakery";
 8.	Run the project
 o	Start Apache and MySQL in Laragon
 o	Visit: http://localhost/Shop-Bakery/homepage.php
