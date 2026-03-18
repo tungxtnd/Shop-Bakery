@@ -179,4 +179,61 @@ body {
     .shop-card img { height: 120px; }
 }
 </style>
+<div class="collection-container">
+    <!-- Thanh menu phụ -->
+    <div class="collection-menu">
+        <a href="?c=all" class="<?php if ($selected == 'all') echo 'active'; ?>">All Occasions</a>
+        <?php foreach ($collections as $i => $col): ?>
+            <a href="?c=<?php echo $i; ?>" class="<?php if ($selected == $i) echo 'active'; ?>">
+                <?php echo htmlspecialchars($col['name']); ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
  
+    <div class="collection-title">
+        EXPLORE OUR FLOWER COLLECTION<br>
+        FOR ALL OCCASIONS
+    </div>
+ 
+    <div>
+        <?php
+        if ($selected === 'all') {
+            echo '<div class="collection-grid">';
+            foreach ($collections as $idx => $col) {
+                $img = "../../assets/img/collection" . ($idx + 1) . ".jpg";
+                echo '<div class="collection-card">';
+                echo '<a href="?c=' . $idx . '">';
+                echo '<img src="' . $img . '" alt="' . htmlspecialchars($col['name']) . '">';
+                echo '<div class="collection-card-info">';
+                echo '<div class="collection-card-label">COLLECTIONS</div>';
+                echo '<div class="collection-card-title">' . htmlspecialchars($col['name']) . '</div>';
+                echo '</div>';
+                echo '</a>';
+                echo '</div>';
+            }
+            echo '</div>';
+        } elseif (is_numeric($selected) && isset($collections[$selected])) {
+            echo '<div class="shop-products-grid">';
+            if (empty($products)) {
+                echo '<div style="padding:32px;text-align:center;color:#888;">No products in this collection.</div>';
+            } else {
+                foreach ($products as $product) {
+                    $img = "/assets/img/" . htmlspecialchars($product['image']);
+                    echo '<div class="shop-card">';
+                    echo '<a href="/product_details.php?id=' . $product['id'] . '">';
+                    echo '<img src="' . $img . '" alt="' . htmlspecialchars($product['name']) . '">';
+                    echo '<div class="shop-card-info">';
+                    echo '<div class="shop-card-title">' . htmlspecialchars($product['name']) . '</div>';
+                    echo '<div class="shop-card-price">' . number_format($product['price']) . '₫</div>';
+                    echo '</div>';
+                    echo '</a>';
+                    echo '</div>';
+                }
+            }
+            echo '</div>';
+        }
+        ?>
+    </div>
+</div>
+ 
+<?php include '../../includes/footer.php'; ?>
