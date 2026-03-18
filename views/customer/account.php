@@ -274,3 +274,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
             .profile-actions { flex-direction: column; gap: 12px; }
             ul.navbar { width: 100%; position: static; height: auto; }
         }
+ </style>
+</head>
+<?php include '../../includes/header.php'; ?>
+<body>
+    <ul class="navbar">
+        <li><a href="../../homepage.php">Home</a></li>
+        <li>
+            <span style="display:block;padding:10px 18px;color:#000;font-size:16px;">Account</span>
+            <ul class="submenu">
+                <li><a href="/views/customer/account.php">My Account</a></li>
+                <li><a href="/views/customer/orderhistory.php">My Orders</a></li>
+                <li><a href="/views/customer/noti.php">Notification</a></li>
+            </ul>
+        </li>
+    </ul>
+    <div class="right" style="margin-left:220px;">
+    <div class="breadcrumbs" style="margin-left:20px;">
+        <a href="../../homepage.php">Home</a> &gt; My Account
+    </div>
+    <div class="container" style="margin-left:220px;">
+        <h2>My Account</h2>
+        <div class="profile-info">
+            <div class="avatar-box">
+                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['full_name']); ?>&background=faf6f8&color=e75480&size=128" alt="Avatar">
+                <div class="username"><?php echo htmlspecialchars($user['full_name']); ?></div>
+            </div>
+            <form method="post" class="info-table" autocomplete="off">
+                <?php if ($edit_errors): ?>
+                    <div class="error-list"><?php foreach ($edit_errors as $e) echo "<div>$e</div>"; ?></div>
+                <?php endif; ?>
+                <?php if ($edit_success): ?>
+                    <div class="success-msg">Profile updated successfully!</div>
+                <?php endif; ?>
+                <div class="form-group">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" value="<?php echo htmlspecialchars($user['email']); ?>" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="text" id="phone" name="phone" value="<?php echo htmlspecialchars($user['phone']); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <textarea id="address" name="address"><?php echo htmlspecialchars($user['address']); ?></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" name="update_profile" class="btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+        <div class="profile-actions">
+            <button type="button" id="show-change-pass" class="btn btn-secondary" style="margin-left:12px;" aria-expanded="false">Change Password</button>
+        </div>
+        <div class="form-section<?php if ($show_change_pass || $pass_errors || $pass_success) echo ' active'; ?>" id="change-pass-section">
+            <form method="post" autocomplete="off">
+                <div class="form-title">Change Password</div>
+                <?php if ($pass_errors): ?>
+                    <div class="error-list"><?php foreach ($pass_errors as $e) echo "<div>$e</div>"; ?></div>
+                <?php endif; ?>
+                <?php if ($pass_success): ?>
+                    <div class="success-msg">Password changed successfully!</div>
+                <?php endif; ?>
+                <div class="form-group">
+                    <label for="old_password">Old Password</label>
+                    <input type="password" id="old_password" name="old_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">New Password</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm New Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" name="change_password" class="btn btn-secondary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    </div>
+    <script>
+        // Toggle change password form
+        document.getElementById('show-change-pass').onclick = function() {
+            var section = document.getElementById('change-pass-section');
+            section.classList.toggle('active');
+            this.setAttribute('aria-expanded', section.classList.contains('active'));
+        };
+    </script>
+</body>
+</html>
