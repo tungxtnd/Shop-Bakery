@@ -207,3 +207,70 @@ $total_pages = ceil($total_products / $per_page);
     <p style="text-align:center;">We design bouquets the French way, using seasons and our Parisian roots as inspiration.</p>
     <form class="search-bar" method="get" action="/shop-bakery-management/shop.php">
         <input type="text" name="search" placeholder="Search products..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+     <button buttontype="submit"><a href="/.php" style="color:#cb5d00; text-align:center;">Reset</a></button>
+    </form>
+    <div class="shop-main">
+        <form class="sidebar" method="get" action="/shop-bakery-management/shop.php">
+            <h3 style="margin-top:0;">Filter by Price</h3>
+            <input type="hidden" name="search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+            <input type="hidden" name="collection_id" value="<?php echo isset($_GET['collection_id']) ? intval($_GET['collection_id']) : ''; ?>">
+            <div style="margin-bottom:12px;">
+                <label>Min price:</label>
+                <input type="number" step="10000" min="0" name="min_price" placeholder="Min" min="0" value="<?php echo isset($_GET['min_price']) ? intval($_GET['min_price']) : ''; ?>">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label>Max price:</label>
+                <input type="number" step="10000" min="0" name="max_price" placeholder="Max" min="0" value="<?php echo isset($_GET['max_price']) ? intval($_GET['max_price']) : ''; ?>">
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="collection_id"><b>Occasion:</b></label>
+                <select name="collection_id" id="collection_id" style="width:100%;padding:6px;border-radius:4px;">
+                    <option value="">All</option>
+                    <?php foreach ($collections as $col): ?>
+                        <option value="<?php echo $col['id']; ?>" <?php if(isset($_GET['collection_id']) && $_GET['collection_id'] == $col['id']) echo 'selected'; ?>>
+                            <?php echo htmlspecialchars($col['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <button type="submit" style="width: auto;">Apply Filter</button>
+        </form>
+        <div class="products-area">
+             <div class="products-grid">
+                <?php if ($result && $result->num_rows > 0): ?>
+                    <?php while($row = $result->fetch_assoc()): ?>
+                        <a href="/product_details.php?id=<?php echo $row['id']; ?>" class="product-card-link" style="text-decoration:none;color:inherit;">
+                            <div class="product-card">
+                                <img src="/assets/img/<?php echo htmlspecialchars($row['image']); ?>" alt="<?php echo htmlspecialchars($row['name']); ?>">
+                                <h3><?php echo htmlspecialchars($row['name']); ?></h3>
+                                <p><?php echo number_format($row['price']); ?> VND</p>
+                                <div class="desc"><?php echo htmlspecialchars(mb_strimwidth($row['description'], 0, 60, "...")); ?></div>
+                            </div>
+                        </a>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p style="width:100%;text-align:center;">No products found.</p>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+    <?php if ($total_pages > 1): ?>
+    <div class="pagination" style="margin: 32px 0; display: flex; justify-content: center; gap: 8px;">
+        <?php for ($p = 1; $p <= $total_pages; $p++): ?>
+            <?php
+            // Preserve other query params
+            $query = $_GET;
+            $query['page'] = $p;
+            $url = 'shop.php?' . http_build_query($query);
+            ?>
+            <a href="<?php echo $url; ?>" style="padding:8px 14px;border-radius:4px;<?php if($p == $page) echo 'background:#cb5d00;color:#fff;'; else echo 'background:#fff;color:#e75480;border:1px solid #840000;'; ?>">
+                <?php echo $p; ?>
+            </a>
+         <?php endfor; ?>
+    </div>
+    <?php endif; ?>
+    <?php include 'includes/footer.php'; ?>
+</body>
+</html>
+
+
