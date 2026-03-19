@@ -83,7 +83,7 @@ $total_pages = ceil($total_products / $per_page);
             border-radius: 8px;
             margin: 0 30px;
             padding: 24px 18px;
- box-shadow: 0 2px 8px #eee;
+            box-shadow: 0 2px 8px #eee;
             height: fit-content;
             border: 1px solid #ddd;
         }
@@ -129,3 +129,81 @@ $total_pages = ceil($total_products / $per_page);
             height: 100%;
             transition: transform 0.3s ease;
         }
+        .product-card:hover {
+            box-shadow: none;
+            transform: translateY(-8px);
+        }
+
+
+        .product-card img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+        .product-card h3 {
+            margin: 12px 0 8px 0;
+            font-size: 20px;
+            color: #840000;
+        }
+        .product-card p {
+            color: #840000;
+            font-size: 18px;
+            margin: 0 0 10px 0;
+        }
+        .product-card .desc {
+            color: #666;
+            font-size: 14px;
+            min-height: 40px;
+        }
+        .product-card a {
+            display: inline-block;
+            margin-top: 10px;
+            background: #840000;
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 4px;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .product-card a:hover {
+            background: #840000;
+        }
+        button[type="submit"] {
+            background: #cb5d00;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .product-card-link {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .product-card-link:visited,
+        .product-card-link:active {
+            color: inherit;
+        }
+        input[type="number"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        @media (max-width: 900px) {
+            .shop-main { flex-direction: column; }
+            .sidebar { width: 100%; margin-right: 0; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <?php include 'includes/header.php'; ?>
+    <h1 style="text-align:center; margin: 40px 0 20px 0;">ALL BOUQUETS</h1>
+    <p style="text-align:center;">We design bouquets the French way, using seasons and our Parisian roots as inspiration.</p>
+    <form class="search-bar" method="get" action="/shop-bakery-management/shop.php">
+        <input type="text" name="search" placeholder="Search products..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
