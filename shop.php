@@ -47,3 +47,85 @@ if ($col_result && $col_result->num_rows > 0) {
           $collections[] = $row;
      }
 }
+
+// Count total products for pagination
+$count_sql = "SELECT COUNT(*) as total FROM products $where";
+$count_stmt = $conn->prepare($count_sql);
+if ($params) {
+    $types = str_repeat('s', count($params));
+    $count_stmt->bind_param($types, ...$params);
+}
+$count_stmt->execute();
+$count_result = $count_stmt->get_result();
+$total_products = $count_result->fetch_assoc()['total'];
+$total_pages = ceil($total_products / $per_page);
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop - All Products</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <style>
+        body {
+            background: #fff;
+            font-family: 'Times New Roman', serif;
+        }
+        .shop-main {
+            display: flex;
+            width: 100%;
+            margin: 0 0 30px 0;
+            background: #fff;
+        }
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-radius: 8px;
+            margin: 0 30px;
+            padding: 24px 18px;
+ box-shadow: 0 2px 8px #eee;
+            height: fit-content;
+            border: 1px solid #ddd;
+        }
+        .products-area {
+            flex: 1;
+        }
+        .search-bar {
+            width: 95%;
+            background: #fff;
+            border-radius: 8px;
+            display: flex;
+            gap: 12px;
+            justify-content: right;
+            margin: 20px auto;
+        }
+        .search-bar input, .search-bar button {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .products-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+       
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            width: 100%;
+        }
+
+
+       
+        .product-card {
+            background: transparent;
+            box-shadow: none;
+            padding: 0;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            height: 100%;
+            transition: transform 0.3s ease;
+        }
