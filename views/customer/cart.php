@@ -108,4 +108,34 @@ $result = $stmt->get_result();
                     <td>
                         <img src="/assets/img/<?php echo htmlspecialchars($row['product_image']); ?>" alt="">
                         <div><?php echo htmlspecialchars($row['product_name']); ?></div>
+                                            </td>
+                    <td>
+                        <?php if ($row['card_name']): ?>
+                            <img src="/assets/img/<?php echo htmlspecialchars($row['card_image']); ?>" alt="" style="width:40px;height:40px;"><br>
+                            <?php echo htmlspecialchars($row['card_name']); ?><br>
+                            +<?php echo number_format($row['card_price']); ?> VND
+                            <span data-card-price="<?php echo $row['card_price']; ?>" style="display:none;"></span>
+                        <?php else: ?>
+                            <span style="color:#888;">None</span>
+                            <span data-card-price="0" style="display:none;"></span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php echo number_format($row['product_price']); ?> VND
+                        <span data-product-price="<?php echo $row['product_price']; ?>" style="display:none;"></span>
+                        <?php if ($row['card_price']): ?><br>+<?php echo number_format($row['card_price']); ?> VND<?php endif; ?>
+                    </td>
+                    <td>
+                        <input type="number" name="quantities[<?php echo $row['cart_id']; ?>]" value="<?php echo $row['quantity']; ?>" min="1" style="width:60px;" onchange="this.form.submit();">
+                    </td>
+                    <td class="subtotal-cell">
+                        <?php echo number_format($subtotal); ?> VND
+                    </td>
+                    <td>
+                        <button type="submit" name="remove" value="<?php echo $row['cart_id']; ?>" class="remove-btn">Remove</button>
+                    </td>
+                </tr>
+                <?php endwhile; ?>
+                <tr>
+
 
