@@ -137,5 +137,39 @@ $result = $stmt->get_result();
                 </tr>
                 <?php endwhile; ?>
                 <tr>
+                                        <td colspan="4" style="text-align:right;"><b>Total:</b></td>
+                    <td colspan="2"><b id="grand-total"><?php echo number_format($grand_total); ?> VND</b></td>
+                </tr>
+            </table>
+            <a href="#" onclick="submitCheckout(event)" class="checkout-btn" style="text-decoration:none; margin-left:20px;">Checkout</a>
+        </form>
+        <form id="checkout-form" method="post" action="pay.php" style="display:none;">
+            <input type="hidden" name="checkout_items" id="checkout-items">
+        </form>
+        <?php else: ?>
+            <div class="empty-cart">Your cart is empty.</div>
+        <?php endif; ?>
+    </div>
+    <?php include '../../includes/footer.php'; ?>
+    <script>
+    document.getElementById('select-all').addEventListener('change', function() {
+        document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = this.checked);
+    });
+
+
+    function submitCheckout(e) {
+        e.preventDefault();
+        const checked = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+        if (checked.length === 0) {
+            alert('Please select at least one product to checkout.');
+            return;
+        }
+        document.getElementById('checkout-items').value = checked.join(',');
+        document.getElementById('checkout-form').submit();
+    }
+
+
+    // --- Dynamic price update ---
+
 
 
