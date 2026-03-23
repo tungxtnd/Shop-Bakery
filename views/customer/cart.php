@@ -170,6 +170,28 @@ $result = $stmt->get_result();
 
 
     // --- Dynamic price update ---
+            document.querySelectorAll('input[type="number"][name^="quantities"]').forEach(function(input) {
+        input.addEventListener('input', function() {
+            const row = input.closest('tr');
+            const productPrice = parseInt(row.querySelector('[data-product-price]').getAttribute('data-product-price'));
+            const cardPrice = parseInt(row.querySelector('[data-card-price]') ? row.querySelector('[data-card-price]').getAttribute('data-card-price') : 0) || 0;
+            const quantity = parseInt(input.value) || 1;
+            const subtotal = (productPrice * quantity) + cardPrice;
+            row.querySelector('.subtotal-cell').textContent = subtotal.toLocaleString() + ' VND';
+
+
+            // Update grand total
+            let grandTotal = 0;
+            document.querySelectorAll('.subtotal-cell').forEach(function(cell) {
+                grandTotal += parseInt(cell.textContent.replace(/[^\d]/g, '')) || 0;
+            });
+            document.getElementById('grand-total').textContent = grandTotal.toLocaleString() + ' VND';
+        });
+    });
+    </script>
+</body>
+</html>
+
 
 
 
