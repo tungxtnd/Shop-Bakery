@@ -71,3 +71,41 @@ $result = $stmt->get_result();
         .remove-btn:hover { background: #d84372; }
         .checkout-btn {
             margin-top: 24px; background: #e75480; color: #fff; border: none; border-radius: 5px;
+                       padding: 14px 40px; font-size: 18px; cursor: pointer; transition: background 0.2s;
+        }
+        .checkout-btn:hover { background: #d84372; }
+        .empty-cart { text-align: center; color: #888; margin: 40px 0; }
+    </style>
+</head>
+<body>
+    <?php include '../../includes/header.php'; ?>
+    <div class="cart-container">
+        <h2>Your Cart</h2>
+        <?php if ($result && $result->num_rows > 0): ?>
+        <form method="post" action="">
+            <table>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Product</th>
+                    <th>Card</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Remove</th>
+                </tr>
+                <?php
+                $grand_total = 0;
+                while ($row = $result->fetch_assoc()):
+                    $product_total = $row['product_price'] * $row['quantity'];
+                    $card_total = $row['card_price'] ?? 0;
+                    $subtotal = $product_total + $card_total;
+                    $grand_total += $subtotal;
+                ?>
+                <tr>
+                    <td>
+                        <input type="checkbox" name="checkout_items[]" value="<?php echo $row['cart_id']; ?>" class="item-checkbox">
+                    </td>
+                    <td>
+                        <img src="/assets/img/<?php echo htmlspecialchars($row['product_image']); ?>" alt="">
+                        <div><?php echo htmlspecialchars($row['product_name']); ?></div>
+
