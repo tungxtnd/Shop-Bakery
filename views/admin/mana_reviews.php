@@ -128,3 +128,237 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_id'], $_POST['r
     ]);
     exit;
 }
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Reviews</title>
+    <style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: #fff;
+        margin: 0;
+    }
+    .admin-navbar {
+            background: #5C3A21;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+        .admin-navbar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0 32px;
+            font-size: 18px;
+            line-height: 60px;
+            display: block;
+            transition: background 0.2s;
+        }
+        .admin-navbar a:hover, .admin-navbar a.active {
+            background: #7A5230;
+        }
+    .breadcrumbs {
+        margin: 24px 0 10px 0;
+        font-size: 1.08rem;
+        color: #888;
+    }
+    .breadcrumbs a { color: #7A5230; text-decoration: none; }
+    .review-stats {
+        margin-bottom: 18px;
+        font-size: 1.08rem;
+    }
+    .review-stats span { color: #7A5230; font-weight: 500; }
+    .review-filter {
+        background: #faf6f8;
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+    }
+    .review-filter input, .review-filter select {
+        padding: 7px 12px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+        font-size: 1rem;
+        min-width: 170px;
+    }
+    .review-filter button {
+        background: #7A5230;
+        color: #fff;
+        padding: 7px 18px;
+        border-radius: 5px;
+        border: none;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .review-filter button:hover { opacity: 0.85; }
+    .review-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px #eee;
+    }
+    .review-table th, .review-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #f0e0de;
+        text-align: left;
+        font-size: 1.05rem;
+        vertical-align: top;
+    }
+    .review-table th {
+        background: #f8eaea;
+        color: #7A5230;
+        font-weight: 600;
+        text-align: left;
+    }
+    .review-table tr:last-child td { border-bottom: none; }
+    .review-table td {
+        background: #fff;
+    }
+    .review-table tr:nth-child(even) { background: #faf6f8; }
+    .review-table tr:hover td { background: #f5eaea; transition: background 0.2s; }
+    .review-actions button {
+        border: none;
+        background: #f8eaea;
+        cursor: pointer;
+        color: #7A5230;
+        font-size: 1.15rem;
+        padding: 5px 10px;
+        border-radius: 5px;
+        margin-right: 4px;
+        transition: background 0.1s;
+    }
+    .review-actions button:hover {
+        background: #f2d6d6;
+    }
+    .bulk-actions {
+        margin: 16px 0 0 0;
+        display: flex;
+        gap: 10px;
+    }
+    .bulk-actions button {
+        background: #7A5230;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 6px 18px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .bulk-actions button:hover { opacity: 0.85; }
+    .reply-content {
+        margin-top: 10px;
+        color: #219653;
+        font-size: 1.05em;
+        font-weight: 500;
+        background: #f3fff3;
+        border-left: 4px solid #2ecc40;
+        border-radius: 5px;
+        padding: 8px 12px;
+        display: block;
+        max-width: 420px;
+        white-space: pre-line;
+        transition: background 0.2s;
+        animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px);}
+        to { opacity: 1; transform: translateY(0);}
+    }
+    .reply-content .reply-date {
+        color: #888;
+        font-size: 0.97em;
+        font-weight: 400;
+        margin-left: 8px;
+    }
+    .reply-box {
+        margin-top: 8px;
+        margin-left: 70%;
+        background: #f8f8f8;
+        border-radius: 6px;
+        padding: 10px 12px;
+        border: 1px solid #eee;
+        max-width: 350px;
+        box-shadow: 0 2px 8px #e0f7e0;
+        animation: fadeIn 0.3s;
+    }
+    .pagination {
+        margin: 30px 0 30px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        font-size: 1.08rem;
+    }
+    .pagination a, .pagination span {
+        min-width: 32px;
+        min-height: 32px;
+        line-height: 32px;
+        padding: 0;
+        border-radius: 6px;
+        border: 1.5px solid #e2bcbc;
+        background: #fff;
+        color: #7A5230;
+        text-decoration: none;
+        font-weight: 500;
+        text-align: center;
+        display: inline-block;
+        box-sizing: border-box;
+        font-size: 1rem;
+        transition: background 0.15s, color 0.15s;
+    }
+    .pagination a:hover {
+        background: #f8eaea;
+        color: #7A5230;
+    }
+    .pagination .active {
+        background: #7A5230;
+        color: #fff;
+        font-weight: bold;
+        border-color: #d17c7c;
+        pointer-events: none;
+    }
+    .pagination .dots {
+        background: none;
+        border: none;
+        color: #bbb;
+        padding: 0 6px;
+        min-width: unset;
+        min-height: unset;
+        line-height: 32px;
+        font-size: 1.1em;
+    }
+    .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%);
+        background: #2ecc40;
+        color: #fff;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 12px #aaa;
+        z-index: 9999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s;
+    }
+    .toast.show { opacity: 1; pointer-events: auto; }
+    @media (max-width: 900px) {
+        .review-table, .review-table th, .review-table td { font-size: 0.97rem; }
+        .review-table, .review-table th, .review-table td { display: block; width: 100%; }
+        .review-table th, .review-table td { box-sizing: border-box; }
+        .review-table tr { margin-bottom: 18px; border-radius: 10px; box-shadow: 0 2px 8px #eee; }
+    }
