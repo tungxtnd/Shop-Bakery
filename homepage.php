@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <meta charset="UTF-8">
     <link href='https://fonts.googleapis.com/css?family=Charmonman' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Inria Serif' rel='stylesheet'>
-    <title>Bakery Shop</title>
+    <title>Flower Shop</title>
     <style>
         html {
             scroll-behavior: smooth;
