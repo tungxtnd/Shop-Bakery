@@ -39,4 +39,43 @@ if ($history_stmt) {
         $history[] = $row['edit_at'];
     }
 }
+ // Handle update
+$errors = [];
+$success = false;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name          = trim($_POST['name'] ?? '');
+    $description   = trim($_POST['description'] ?? '');
+    $price         = floatval($_POST['price'] ?? 0);
+    $collection_id = intval($_POST['collection_id'] ?? 0);
+    $stock         = intval($_POST['stock'] ?? 0);
+    $status        = $_POST['status'] ?? 'in_stock';
+ 
+    // Validate
+    if ($name === '') $errors[] = "Product name cannot be empty.";
+    if ($price < 0)   $errors[] = "Price must be non-negative.";
+    if ($stock < 0)   $errors[] = "Stock must be non-negative.";
+    if (!in_array($status, ['in_stock', 'out_of_stock'])) $errors[] = "Invalid status.";
+ 
+    // Handle image upload
+    $image = $product['image'];
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $ext   = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allow = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allow)) {
+            $errors[] = "Invalid image format.";
+        } else {
+            $newname = uniqid('prod_') . '.' . $ext;
+            $target  = "../../assets/img/$newname";
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+                $image = $newname;
+            } else {
+                $errors[] = "Image upload failed.";
+            }
+        }
+    }
+ 
+    // Auto-set status to out_of_stock if stock is 0
+    if ($stock == 0) {
+        $status = 'out_of_stock';
+    }
  
