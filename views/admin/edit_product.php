@@ -79,3 +79,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status = 'out_of_stock';
     }
  
+  // Update DB
+    if (!$errors) {
+        $edit_at = date('Y-m-d H:i:s');
+        $stmt = $conn->prepare("UPDATE products SET name=?, description=?, price=?, image=?, collection_id=?, stock=?, status=?, edit_at=? WHERE id=?");
+        $stmt->bind_param('ssdsiissi', $name, $description, $price, $image, $collection_id, $stock, $status, $edit_at, $id);
+        if ($stmt->execute()) {
+            $success = true;
+            // Refresh product info
+            $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
+            $stmt->bind_param('i', $id);
+            $stmt->execute();
+            $product = $stmt->get_result()->fetch_assoc();
+            // Refresh history
+            $history = [];
+            $history_stmt = $conn->prepare("SELECT edit_at FROM products WHERE id = ? AND edit_at IS NOT NULL ORDER BY edit_at DESC");
+            if ($history_stmt) {
+                $history_stmt->bind_param('i', $id);
+                $history_stmt->execute();
+                $result = $history_stmt->get_result();
+                while ($row = $result->fetch_assoc()) {
+                    $history[] = $row['edit_at'];
+                }
+            }
+        } else {
+            $errors[] = "Update failed. Please try again.";
+        }
+    }
+}
+?>
