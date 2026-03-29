@@ -251,6 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     </script>
 </head>
+ 
 <body>
     <div class="breadcrumbs">
         <a href="dashboard.php">Dashboard</a> &gt;
