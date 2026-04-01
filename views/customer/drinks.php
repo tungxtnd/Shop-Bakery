@@ -125,5 +125,20 @@ $result = $stmt->get_result();
                 <?php while($row = $result->fetch_assoc()): ?>
                     <a href="/product_details.php?id=<?php echo $row['id']; ?>" class="product-card">
                         <img src="/assets/img/<?php echo htmlspecialchars($row['image']); ?>" alt="<?php echo htmlspecialchars($row['name']); ?>">
-                        
+                                                <h3><?php echo htmlspecialchars($row['name']); ?></h3>
+                        <p><?php echo number_format($row['price']); ?> VND</p>
+                        <div class="desc"><?php echo htmlspecialchars(mb_strimwidth($row['description'], 0, 60, "...")); ?></div>
+                    </a>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <p style="text-align:center; width: 100%; grid-column: 1 / -1; color: #888; margin-top: 40px;">We are currently updating our drinks menu. Please check back later!</p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+
+    <?php include '../../includes/footer.php'; ?>
+</body>
+</html>
+
 
