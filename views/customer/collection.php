@@ -191,7 +191,7 @@ body {
     </div>
  
     <div class="collection-title">
-        EXPLORE OUR FLOWER COLLECTION<br>
+        EXPLORE OUR BAKERY COLLECTION<br>
         FOR ALL OCCASIONS
     </div>
  
