@@ -86,4 +86,44 @@ $result = $stmt->get_result();
         .product-card h3 {
             margin: 12px 0 8px 0;
             font-size: 20px;
+             color: #840000;
+        }
+       
+        /* Giá tiền (Màu hồng giống trang chi tiết) */
+        .product-card p {
+            color: #e75480;
+            font-size: 18px;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+       
+        .product-card .desc {
+            color: #666;
+            font-size: 14px;
+            min-height: 40px;
+        }
+
+
+        /* Responsive: Tự động thu gọn thành 2 cột hoặc 1 cột khi xem trên điện thoại */
+        @media (max-width: 900px) {
+            .products-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .products-grid { grid-template-columns: 1fr; }
+            .drinks-container { width: 95%; }
+        }
+    </style>
+</head>
+<body>
+   
+    <div class="drinks-container">
+        <h1 class="drinks-title">DRINKS MENU</h1>
+        <p class="drinks-desc">Refresh your day with our signature coffee, tea, and special beverages.</p>
+       
+        <div class="products-grid">
+            <?php if ($result && $result->num_rows > 0): ?>
+                <?php while($row = $result->fetch_assoc()): ?>
+                    <a href="/product_details.php?id=<?php echo $row['id']; ?>" class="product-card">
+                        <img src="/assets/img/<?php echo htmlspecialchars($row['image']); ?>" alt="<?php echo htmlspecialchars($row['name']); ?>">
+                        
 
