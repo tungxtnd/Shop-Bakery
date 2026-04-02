@@ -43,3 +43,50 @@ $week_result = $conn->query($week_sql);
 while ($row = $week_result->fetch_assoc()) {
     $sales_weeks[] = $row['y'] . '-W' . $row['w'];
     $sales_week_data[] = $row['total'];
+    }
+$sales_weeks = array_reverse($sales_weeks);
+$sales_week_data = array_reverse($sales_week_data);
+
+
+// Sales by month (last 6 months)
+$sales_data = [];
+$months = [];
+$sales_sql = "
+    SELECT DATE_FORMAT(order_date, '%Y-%m') as month, SUM(total_amount) as total_sales
+    FROM orders
+    GROUP BY month
+    ORDER BY month DESC
+    LIMIT 6
+";
+$sales_result = $conn->query($sales_sql);
+while ($row = $sales_result->fetch_assoc()) {
+    $months[] = $row['month'];
+    $sales_data[] = $row['total_sales'];
+}
+$months = array_reverse($months);
+$sales_data = array_reverse($sales_data);
+
+
+// Order status distribution
+$status_labels = [];
+$status_counts = [];
+$status_sql = "
+    SELECT status, COUNT(*) as count
+    FROM orders
+    GROUP BY status
+";
+$status_result = $conn->query($status_sql);
+while ($row = $status_result->fetch_assoc()) {
+    $status_labels[] = ucfirst($row['status']);
+    $status_counts[] = $row['count'];
+}
+
+
+// Total Revenue
+$revenue_sql = "SELECT SUM(total_amount) as revenue FROM orders";
+$revenue_result = $conn->query($revenue_sql);
+$total_revenue = $revenue_result->fetch_assoc()['revenue'] ?? 0;
+
+
+// Number of Products
+
