@@ -89,4 +89,50 @@ $total_revenue = $revenue_result->fetch_assoc()['revenue'] ?? 0;
 
 
 // Number of Products
+$product_sql = "SELECT COUNT(*) as total_products FROM products";
+$product_result = $conn->query($product_sql);
+$total_products = $product_result->fetch_assoc()['total_products'] ?? 0;
+
+
+// Total Orders
+$order_sql = "SELECT COUNT(*) as total_orders FROM orders";
+$order_result = $conn->query($order_sql);
+$total_orders = $order_result->fetch_assoc()['total_orders'] ?? 0;
+
+
+// Low-stock Alerts (e.g., stock <= 5)
+$low_stock_sql = "SELECT id, name, stock FROM products WHERE stock <= 5";
+$low_stock_result = $conn->query($low_stock_sql);
+$low_stock = $low_stock_result->num_rows;
+$low_stock_products = [];
+while ($row = $low_stock_result->fetch_assoc()) {
+    $low_stock_products[] = $row;
+}
+
+
+// Best-selling products (top 5)
+$best_products = [];
+$best_qty = [];
+$best_sql = "
+    SELECT p.name, SUM(oi.quantity) as qty
+    FROM order_items oi
+    JOIN products p ON oi.product_id = p.id
+    GROUP BY oi.product_id
+    ORDER BY qty DESC
+    LIMIT 5
+";
+$best_result = $conn->query($best_sql);
+while ($row = $best_result->fetch_assoc()) {
+    $best_products[] = $row['name'];
+    $best_qty[] = $row['qty'];
+}
+
+
+// Average rating per product (top 5 by rating count)
+$rating_products = [];
+$rating_avgs = [];
+$rating_sql = "
+    SELECT p.name, AVG(r.rating) as avg_rating
+    FROM reviews r
+
 
