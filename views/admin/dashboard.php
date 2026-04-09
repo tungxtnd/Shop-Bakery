@@ -373,4 +373,45 @@ while ($row = $rating_result->fetch_assoc()) {
             scales: { y: { beginAtZero: true } }
         }
     });
+        document.getElementById('salesFilter').addEventListener('change', function() {
+        const period = this.value;
+        salesChart.data.labels = salesData[period].labels;
+        salesChart.data.datasets[0].data = salesData[period].data;
+        salesChart.data.datasets[0].label = salesData[period].label;
+        // Change chart type for daily (line), weekly/monthly (bar)
+        salesChart.config.type = (period === 'daily') ? 'line' : 'bar';
+        salesChart.update();
+    });
+
+
+    // Best-selling Products Chart
+    const bestProductCtx = document.getElementById('bestProductChart').getContext('2d');
+    new Chart(bestProductCtx, {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($best_products); ?>,
+            datasets: [{
+                label: 'Sold Quantity',
+                data: <?php echo json_encode($best_qty); ?>,
+                backgroundColor: ['#00ba28', '#FFD66B', '#4DA8DA', '#FF6F61', '#B39DDB'],
+            }]
+        }
+    });
+
+
+    // Order Status Distribution Chart
+    const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+    new Chart(orderStatusCtx, {
+        type: 'pie',
+        data: {
+            labels: <?php echo json_encode($status_labels); ?>,
+            datasets: [{
+                data: <?php echo json_encode($status_counts); ?>,
+                backgroundColor: [
+                    '#81E7AF', '#F38C79', '#5BBCFF', '#FB9EC6', '#bdbdbd'
+                ]
+            }]
+        }
+    });
+
 
