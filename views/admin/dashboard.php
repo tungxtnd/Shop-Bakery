@@ -262,6 +262,39 @@ while ($row = $rating_result->fetch_assoc()) {
         <a href="dashboard.php" class="active">Dashboard</a>
         <a href="mana_orders.php">Manage Orders</a>
         <a href="mana_products.php">Manage Products</a>
+        <a href="mana_reviews.php">Manage Reviews</a>
+        <a href="mana_users.php">Manage Users</a>
+        <a href="mana_noti.php">Manage Notifications</a>
+        <a href="/views/auth/logout.php" style="margin-left:auto;" onclick="return confirm('Are you sure you want to logout?');">Logout</a>
+    </nav>
+    <div class="dashboard-container">
+        <h1>Admin Dashboard</h1>
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Revenue</div>
+                <div class="kpi-value"><?php echo number_format($total_revenue); ?> VND</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Number of Products</div>
+                <div class="kpi-value"><?php echo $total_products; ?></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Total Orders</div>
+                <div class="kpi-value"><?php echo $total_orders; ?></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Low-stock Alerts</div>
+                <div class="kpi-value kpi-alert" id="lowStockToggle" style="cursor:pointer;">
+                    <?php echo $low_stock; ?>
+                </div>
+                <?php if ($low_stock > 0): ?>
+                    <div id="lowStockList" style="display:none; margin-top:12px; font-size:14px; color:#b97a56; text-align:left;">
+                        <b>Products low in stock:</b>
+                        <ul style="margin:8px 0 0 18px; padding:0;">
+                            <?php foreach ($low_stock_products as $prod): ?>
+                                <li>
+                                    <?php echo htmlspecialchars($prod['name']); ?>
+                                    (Stock: <?php echo $prod['stock']; ?>)
 
 
 
