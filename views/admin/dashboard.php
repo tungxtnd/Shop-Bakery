@@ -413,5 +413,28 @@ while ($row = $rating_result->fetch_assoc()) {
             }]
         }
     });
+        
+
+    // Average Rating per Product Chart
+    const avgRatingCtx = document.getElementById('avgRatingChart').getContext('2d');
+    new Chart(avgRatingCtx, {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($rating_products); ?>,
+            datasets: [{
+                label: 'Average Rating',
+                data: <?php echo json_encode($rating_avgs); ?>,
+                backgroundColor: '#FFBB91',
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+
+    </script>
+</body>
+</html>
 
 
