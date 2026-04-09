@@ -176,5 +176,49 @@ while ($row = $rating_result->fetch_assoc()) {
         }
         .dashboard-container {
             max-width: 1100px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px #eee;
+            padding: 32px;
+        }
+        h1 { color: #7A5230; }
+        .admin-welcome {
+            font-size: 20px;
+            color: #444;
+            margin-bottom: 30px;
+        }
+        .charts-row {
+            display: flex;
+            gap: 40px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .chart-card {
+            flex: 1;
+            min-width: 320px;
+            background: #faf6f8;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px #eee;
+            text-align: center;
+        }
+        .admin-links {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .admin-link-card {
+            flex: 1;
+            background: #faf6f8;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px #eee;
+            transition: box-shadow 0.2s;
+        }
+        .admin-link-card:hover {
+            box-shadow: 0 4px 16px #e75480;
+
 
 
