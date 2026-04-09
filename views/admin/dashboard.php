@@ -219,6 +219,49 @@ while ($row = $rating_result->fetch_assoc()) {
         }
         .admin-link-card:hover {
             box-shadow: 0 4px 16px #e75480;
+            }
+        .admin-link-card a {
+            color: #e75480;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .kpi-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+            margin-top: 30px;
+        }
+        .kpi-card {
+            flex: 1;
+            background: #faf6f8;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px #eee;
+            font-size: 18px;
+        }
+        .kpi-title {
+            color: #888;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            color: #C26E3D;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .kpi-alert {
+            color: #D32F2F;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="admin-navbar">
+        <a href="dashboard.php" class="active">Dashboard</a>
+        <a href="mana_orders.php">Manage Orders</a>
+        <a href="mana_products.php">Manage Products</a>
 
 
 
