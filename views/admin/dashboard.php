@@ -333,6 +333,44 @@ while ($row = $rating_result->fetch_assoc()) {
                 </div>
             </div>
     </div>
+    <script>
+    // Prepare sales data for all periods
+    const salesData = {
+        daily: {
+            labels: <?php echo json_encode($sales_days); ?>,
+            data: <?php echo json_encode($sales_day_data); ?>,
+            label: 'Sales (VND) - Daily'
+        },
+        weekly: {
+            labels: <?php echo json_encode($sales_weeks); ?>,
+            data: <?php echo json_encode($sales_week_data); ?>,
+            label: 'Sales (VND) - Weekly'
+        },
+        monthly: {
+            labels: <?php echo json_encode($months); ?>,
+            data: <?php echo json_encode($sales_data); ?>,
+            label: 'Sales (VND) - Monthly'
+        }
+    };
 
 
+    const ctx = document.getElementById('salesReportChart').getContext('2d');
+    let salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: salesData.daily.labels,
+            datasets: [{
+                label: salesData.daily.label,
+                data: salesData.daily.data,
+                backgroundColor: [
+                    '#C9E9D2', '#789DBC', '#FFE3E3', '#FEF9F2', '#bdbdbd'
+                ],
+                borderColor: '#e75480',
+                fill: true
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true } }
+        }
+    });
 
