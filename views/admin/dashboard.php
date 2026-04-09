@@ -134,5 +134,47 @@ $rating_avgs = [];
 $rating_sql = "
     SELECT p.name, AVG(r.rating) as avg_rating
     FROM reviews r
+    JOIN products p ON r.product_id = p.id
+    GROUP BY r.product_id
+    HAVING COUNT(r.id) >= 1
+    ORDER BY avg_rating DESC
+    LIMIT 5
+";
+$rating_result = $conn->query($rating_sql);
+while ($row = $rating_result->fetch_assoc()) {
+    $rating_products[] = $row['name'];
+    $rating_avgs[] = round($row['avg_rating'], 2);
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Bakery Shop</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #f8f8f8; font-family: Arial, sans-serif; margin: 0; }
+        .admin-navbar {
+            background: #5C3A21;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+        .admin-navbar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0 32px;
+            font-size: 18px;
+            line-height: 60px;
+            display: block;
+            transition: background 0.2s;
+        }
+        .admin-navbar a:hover, .admin-navbar a.active {
+            background: #7A5230;
+        }
+        .dashboard-container {
+            max-width: 1100px;
 
 
