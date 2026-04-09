@@ -295,6 +295,44 @@ while ($row = $rating_result->fetch_assoc()) {
                                 <li>
                                     <?php echo htmlspecialchars($prod['name']); ?>
                                     (Stock: <?php echo $prod['stock']; ?>)
+                                    </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                    <script>
+                        document.getElementById('lowStockToggle').onclick = function() {
+                            var list = document.getElementById('lowStockList');
+                            list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+                        };
+                    </script>
+                <?php endif; ?>
+            </div>
+        </div>
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3>Sales Report
+                        <select id="salesFilter" style="margin-left:10px; padding:4px 8px; font-size:15px;">
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </h3>
+                    <canvas id="salesReportChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Best-selling Products</h3>
+                    <canvas id="bestProductChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Order Status Distribution</h3>
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Average Rating per Product</h3>
+                    <canvas id="avgRatingChart"></canvas>
+                </div>
+            </div>
+    </div>
 
 
 
