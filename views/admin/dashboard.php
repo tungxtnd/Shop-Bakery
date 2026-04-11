@@ -134,5 +134,307 @@ $rating_avgs = [];
 $rating_sql = "
     SELECT p.name, AVG(r.rating) as avg_rating
     FROM reviews r
+    JOIN products p ON r.product_id = p.id
+    GROUP BY r.product_id
+    HAVING COUNT(r.id) >= 1
+    ORDER BY avg_rating DESC
+    LIMIT 5
+";
+$rating_result = $conn->query($rating_sql);
+while ($row = $rating_result->fetch_assoc()) {
+    $rating_products[] = $row['name'];
+    $rating_avgs[] = round($row['avg_rating'], 2);
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Bakery Shop</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #f8f8f8; font-family: Arial, sans-serif; margin: 0; }
+        .admin-navbar {
+            background: #5C3A21;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            height: 60px;
+        }
+        .admin-navbar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0 32px;
+            font-size: 18px;
+            line-height: 60px;
+            display: block;
+            transition: background 0.2s;
+        }
+        .admin-navbar a:hover, .admin-navbar a.active {
+            background: #7A5230;
+        }
+        .dashboard-container {
+            max-width: 1100px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px #eee;
+            padding: 32px;
+        }
+        h1 { color: #7A5230; }
+        .admin-welcome {
+            font-size: 20px;
+            color: #444;
+            margin-bottom: 30px;
+        }
+        .charts-row {
+            display: flex;
+            gap: 40px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .chart-card {
+            flex: 1;
+            min-width: 320px;
+            background: #faf6f8;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 2px 8px #eee;
+            text-align: center;
+        }
+        .admin-links {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        .admin-link-card {
+            flex: 1;
+            background: #faf6f8;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px #eee;
+            transition: box-shadow 0.2s;
+        }
+        .admin-link-card:hover {
+            box-shadow: 0 4px 16px #e75480;
+            }
+        .admin-link-card a {
+            color: #e75480;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .kpi-row {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 40px;
+            margin-top: 30px;
+        }
+        .kpi-card {
+            flex: 1;
+            background: #faf6f8;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 2px 8px #eee;
+            font-size: 18px;
+        }
+        .kpi-title {
+            color: #888;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            color: #C26E3D;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .kpi-alert {
+            color: #D32F2F;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="admin-navbar">
+        <a href="dashboard.php" class="active">Dashboard</a>
+        <a href="mana_orders.php">Manage Orders</a>
+        <a href="mana_products.php">Manage Products</a>
+        <a href="mana_reviews.php">Manage Reviews</a>
+        <a href="mana_users.php">Manage Users</a>
+        <a href="mana_noti.php">Manage Notifications</a>
+        <a href="/views/auth/logout.php" style="margin-left:auto;" onclick="return confirm('Are you sure you want to logout?');">Logout</a>
+    </nav>
+    <div class="dashboard-container">
+        <h1>Admin Dashboard</h1>
+        <div class="kpi-row">
+            <div class="kpi-card">
+                <div class="kpi-title">Total Revenue</div>
+                <div class="kpi-value"><?php echo number_format($total_revenue); ?> VND</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Number of Products</div>
+                <div class="kpi-value"><?php echo $total_products; ?></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Total Orders</div>
+                <div class="kpi-value"><?php echo $total_orders; ?></div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-title">Low-stock Alerts</div>
+                <div class="kpi-value kpi-alert" id="lowStockToggle" style="cursor:pointer;">
+                    <?php echo $low_stock; ?>
+                </div>
+                <?php if ($low_stock > 0): ?>
+                    <div id="lowStockList" style="display:none; margin-top:12px; font-size:14px; color:#b97a56; text-align:left;">
+                        <b>Products low in stock:</b>
+                        <ul style="margin:8px 0 0 18px; padding:0;">
+                            <?php foreach ($low_stock_products as $prod): ?>
+                                <li>
+                                    <?php echo htmlspecialchars($prod['name']); ?>
+                                    (Stock: <?php echo $prod['stock']; ?>)
+                                    </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                    <script>
+                        document.getElementById('lowStockToggle').onclick = function() {
+                            var list = document.getElementById('lowStockList');
+                            list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+                        };
+                    </script>
+                <?php endif; ?>
+            </div>
+        </div>
+            <div class="charts-row">
+                <div class="chart-card">
+                    <h3>Sales Report
+                        <select id="salesFilter" style="margin-left:10px; padding:4px 8px; font-size:15px;">
+                            <option value="daily" selected>Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </h3>
+                    <canvas id="salesReportChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Best-selling Products</h3>
+                    <canvas id="bestProductChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Order Status Distribution</h3>
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Average Rating per Product</h3>
+                    <canvas id="avgRatingChart"></canvas>
+                </div>
+            </div>
+    </div>
+    <script>
+    // Prepare sales data for all periods
+    const salesData = {
+        daily: {
+            labels: <?php echo json_encode($sales_days); ?>,
+            data: <?php echo json_encode($sales_day_data); ?>,
+            label: 'Sales (VND) - Daily'
+        },
+        weekly: {
+            labels: <?php echo json_encode($sales_weeks); ?>,
+            data: <?php echo json_encode($sales_week_data); ?>,
+            label: 'Sales (VND) - Weekly'
+        },
+        monthly: {
+            labels: <?php echo json_encode($months); ?>,
+            data: <?php echo json_encode($sales_data); ?>,
+            label: 'Sales (VND) - Monthly'
+        }
+    };
+
+
+    const ctx = document.getElementById('salesReportChart').getContext('2d');
+    let salesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: salesData.daily.labels,
+            datasets: [{
+                label: salesData.daily.label,
+                data: salesData.daily.data,
+                backgroundColor: [
+                    '#C9E9D2', '#789DBC', '#FFE3E3', '#FEF9F2', '#bdbdbd'
+                ],
+                borderColor: '#e75480',
+                fill: true
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+        document.getElementById('salesFilter').addEventListener('change', function() {
+        const period = this.value;
+        salesChart.data.labels = salesData[period].labels;
+        salesChart.data.datasets[0].data = salesData[period].data;
+        salesChart.data.datasets[0].label = salesData[period].label;
+        // Change chart type for daily (line), weekly/monthly (bar)
+        salesChart.config.type = (period === 'daily') ? 'line' : 'bar';
+        salesChart.update();
+    });
+
+
+    // Best-selling Products Chart
+    const bestProductCtx = document.getElementById('bestProductChart').getContext('2d');
+    new Chart(bestProductCtx, {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($best_products); ?>,
+            datasets: [{
+                label: 'Sold Quantity',
+                data: <?php echo json_encode($best_qty); ?>,
+                backgroundColor: ['#00ba28', '#FFD66B', '#4DA8DA', '#FF6F61', '#B39DDB'],
+            }]
+        }
+    });
+
+
+    // Order Status Distribution Chart
+    const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+    new Chart(orderStatusCtx, {
+        type: 'pie',
+        data: {
+            labels: <?php echo json_encode($status_labels); ?>,
+            datasets: [{
+                data: <?php echo json_encode($status_counts); ?>,
+                backgroundColor: [
+                    '#81E7AF', '#F38C79', '#5BBCFF', '#FB9EC6', '#bdbdbd'
+                ]
+            }]
+        }
+    });
+        
+
+    // Average Rating per Product Chart
+    const avgRatingCtx = document.getElementById('avgRatingChart').getContext('2d');
+    new Chart(avgRatingCtx, {
+        type: 'bar',
+        data: {
+            labels: <?php echo json_encode($rating_products); ?>,
+            datasets: [{
+                label: 'Average Rating',
+                data: <?php echo json_encode($rating_avgs); ?>,
+                backgroundColor: '#FFBB91',
+            }]
+        },
+        options: {
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+
+    </script>
+</body>
+</html>
 
 
