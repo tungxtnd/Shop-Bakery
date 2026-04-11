@@ -1,44 +1,47 @@
 <?php
-session_start();
-include '../../connectdb.php';
-
+session_start(); // Bắt đầu phiên làm việc
+include '../../connectdb.php'; // Kết nối cơ sở dữ liệu
 
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $full_name = trim($_POST['full_name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-    $phone = trim($_POST['phone'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-
+    $full_name = trim($_POST['full_name'] ?? ''); // Loại bỏ khoảng trắng tên
+    $email = trim($_POST['email'] ?? ''); // Loại bỏ khoảng trắng email
+    $password = $_POST['password'] ?? ''; // Nhận mật khẩu
+    $confirm_password = $_POST['confirm_password'] ?? ''; // Nhận mật khẩu xác nhận
+    $phone = trim($_POST['phone'] ?? ''); // Loại bỏ khoảng trắng số điện thoại
+    $address = trim($_POST['address'] ?? ''); // Loại bỏ khoảng trắng địa chỉ
 
     if ($password !== $confirm_password) {
-        $error = "Passwords do not match.";
+        $error = "Passwords do not match."; // Kiểm tra mật khẩu khớp nhau
     } else {
         // Kiểm tra email đã tồn tại chưa
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $stmt->store_result();
+        
         if ($stmt->num_rows > 0) {
-            $error = "Email already exists.";
+            $error = "Email already exists."; // Thông báo nếu email đã tồn tại
         } else {
+            // MỚI: Mã hóa mật khẩu trước khi lưu vào Database
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+            // Thực hiện chèn người dùng mới với mật khẩu đã mã hóa và vai trò 'customer'
             $stmt = $conn->prepare("INSERT INTO users (full_name, email, password, phone, address, role) VALUES (?, ?, ?, ?, ?, 'customer')");
-            $stmt->bind_param("sssss", $full_name, $email, $password, $phone, $address);
+            $stmt->bind_param("sssss", $full_name, $email, $hashed_password, $phone, $address);
+            
             if ($stmt->execute()) {
-                header("Location: login.php?registered=1");
+                header("Location: login.php?registered=1"); // Chuyển hướng sau khi đăng ký thành công
                 exit;
             } else {
-                $error = "Registration failed. Please try again.";
+                $error = "Registration failed. Please try again."; // Thông báo lỗi đăng ký
             }
         }
         $stmt->close();
     }
 }
-include '../../includes/header.php';
+include '../../includes/header.php'; // Nhúng header
 ?>
-
 
 <div class="register-bg">
     <div class="register-box">
@@ -87,7 +90,9 @@ include '../../includes/header.php';
     </div>
 </div>
 <?php include '../../includes/footer.php'; ?>
+
 <style>
+/* Phần CSS giữ nguyên từ file gốc của bạn */
 .register-bg {
     height: calc(100vh - 70px);
     min-height: unset;
@@ -98,63 +103,54 @@ include '../../includes/header.php';
     position: relative;
     padding-top: 0;
 }
-    .register-box {
+.register-box {
     position: relative;
     z-index: 1;
-    background: rgba(255, 255, 255, 0.95); /* Mẹo nhỏ: Thêm độ trong suốt nhẹ (0.95) để form hòa quyện với nền hơn */
+    background: rgba(255, 255, 255, 0.95);
     border: 1px solid #222;
     border-radius: 12px;
-    max-width: 550px; /* Thu hẹp từ 700px xuống 550px */
+    max-width: 550px;
     width: 100%;
     margin: 40px auto;
-    padding: 30px 40px 24px 40px; /* Giảm khoảng trống viền xung quanh */
+    padding: 30px 40px 24px 40px;
     box-sizing: border-box;
     box-shadow: 0 4px 24px #eee;
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* ĐÃ XÓA height: 650px; ĐỂ FORM TỰ CO LẠI VỪA KHÍT NỘI DUNG */
 }
-
-
-    .register-title {
+.register-title {
     font-family: 'Playfair Display', serif;
-    font-size: 1.8rem; /* Giảm cỡ chữ tiêu đề một chút */
+    font-size: 1.8rem;
     font-weight: 700;
     letter-spacing: 1px;
     text-align: center;
-    margin-bottom: 20px; /* Giảm khoảng cách dưới */
+    margin-bottom: 20px;
     width: 100%;
 }
-
-
-    .register-label {
+.register-label {
     font-size: 1rem;
     color: #222;
     margin-bottom: 4px;
     display: block;
     font-weight: 500;
 }
-
-
 .register-input {
     width: 100%;
     padding: 10px 14px;
-    margin-bottom: 16px; /* Giảm khoảng cách giữa các hàng input */
+    margin-bottom: 16px;
     border-radius: 6px;
     border: 1.5px solid #222;
     font-size: 1rem;
     font-family: 'Montserrat', Arial, sans-serif;
     background: #fff;
     box-sizing: border-box;
-    height: 40px; /* Hạ chiều cao ô nhập từ 48px xuống 40px */
+    height: 40px;
 }
 .register-input:focus {
     outline: none;
     border-color: #cb5d00;
 }
-
-
 .register-btn {
     width: 60%;
     margin: 16px auto 0 auto;
@@ -173,8 +169,6 @@ include '../../includes/header.php';
 .register-btn:hover {
     background: #cb5d00;
 }
-
-
 .register-divider {
     border: none;
     border-top: 1px solid #eee;
@@ -190,8 +184,6 @@ include '../../includes/header.php';
     text-align: center;
     width: 100%;
 }
-
-
 .register-create-btn {
     width: 150px;
     margin: 16px auto 0 auto;
@@ -220,7 +212,7 @@ include '../../includes/header.php';
 }
 .form-row {
     display: flex;
-    gap: 20px; /* Thu hẹp khoảng cách giữa cột trái và phải (từ 32px xuống 20px) */
+    gap: 20px;
     margin-bottom: 0;
     width: 100%;
 }

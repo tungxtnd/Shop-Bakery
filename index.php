@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <meta charset="UTF-8">
     <link href='https://fonts.googleapis.com/css?family=Charmonman' rel='stylesheet'>
     <link href='https://fonts.googleapis.com/css?family=Inria Serif' rel='stylesheet'>
-    <title>Flower Shop</title>
+    <title>Bakery Shop</title>
     <style>
         html {
             scroll-behavior: smooth;
@@ -17,132 +17,128 @@ if (session_status() === PHP_SESSION_NONE) {
             padding: 0;
             width: 100%;
         }
-        body {
-            font-family: Montserrat;
-            background-color: #f8f8f8;
-            margin: 0;
+        body { 
+            font-family: Montserrat; 
+            background-color: #f8f8f8; 
+            margin: 0; 
         }
-        header {
+        header { 
             width: 100%;
-            background: #FFE8EE;
-            color: black;
-            padding: 130px 0px 20px 0px;
+            background: #FFE8EE; 
+            color: black; 
+            padding: 130px 0px 20px 0px; 
             position: relative;
         }
-        header h1 {
-            font-size: 48px;
-            margin: 0 30px;
-            font-weight: bold;
+        header h1 { 
+            font-size: 48px; 
+            margin: 0 30px; 
+            font-weight: bold; 
         }
-        header p {
-            font-size: 20px;
-            margin: 10px 30px;
-            line-height: 1.5;
+        header p { 
+            font-size: 20px; 
+            margin: 10px 30px; 
+            line-height: 1.5; 
             width: 50%;
         }
-        .containerb {
+        .containerb { 
             clear: both;
-            width: 80%;
-            background: #fff;
+            width: 80%; 
+            background: #fff; 
             margin: 0 auto;
             padding: 20px 10%;
 
-
         }
-        .container {
+        .container { 
             clear: both;
-            width: 100%;
-            background: #fff;
+            width: 100%; 
+            background: #fff; 
             margin: 0 auto;
             padding: 20px 0px;
         }
-        .container h2 {
+        .container h2 { 
             margin: 0 30px;
         }
-        .bestsellers {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
+        .bestsellers { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 30px; 
             width: 100%;
         }
-        .bakeries {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            width: 60%;
+        .bakeries { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 30px; 
+            width: 60%; 
             justify-content: right;
             margin-right: 20px;
         }
 
-
-        .bestsellers-text {
-            font-size: 15px;
+        .bestsellers-text { 
+            font-size: 15px; 
             width: 40%;
-            color: #9d503b;
+            color: #9d503b; 
             margin-left: 30px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 20px; 
             margin-top: auto;
         }
 
-
         .bestsellers-text button {
-            width: 160px;
-            background: #9d503b;
-            color: #fff;
-            border: none;
-            padding: 15px 20px;
-            border-radius: 4px;
-            cursor: pointer;
+            width: 160px; 
+            background: #9d503b; 
+            color: #fff; 
+            border: none; 
+            padding: 15px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
         }
-        .bestsellers-text button:hover {
-            background: #9d503b;
+        .bestsellers-text button:hover { 
+            background: #9d503b; 
         }
-        .text-up {
-            font-size: 18px;
-            font-weight: bold;
-            color: #000;
+        .text-up { 
+            font-size: 18px; 
+            font-weight: bold; 
+            color: #000; 
             margin-bottom: 210px;
         }
-        .text-up h2 {
-            margin: 0;
+        .text-up h2 { 
+            margin: 0; 
         }
-        .text-down {
-            font-size: 15px;
-            color: #333;
-            margin-top: 10px;
+        .text-down { 
+            font-size: 15px; 
+            color: #333; 
+            margin-top: 10px; 
         }
 
-
-        .bakery {
-            background: #fafafa;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            width: 30%;
-            text-align: center;
-            box-shadow: 0 2px 8px #eee;
+        .bakery { 
+            background: #fafafa; 
+            border: 1px solid #eee; 
+            border-radius: 8px; 
+            width: 30%; 
+            text-align: center; 
+            box-shadow: 0 2px 8px #eee; 
         }
-        .bakery img {
-            width: 100%;
-            height: 280px;
-            object-fit: cover;
-            border-radius: 8px 8px 0 0;
+        .bakery img { 
+            width: 100%; 
+            height: 280px; 
+            object-fit: cover; 
+            border-radius: 8px 8px 0 0; 
         }
-        .bakery h3 {
-            margin: 15px 0 5px;
+        .bakery h3 { 
+            margin: 15px 0 5px; 
         }
-        .bakery p {
-            margin: 0 0 15px;
+        .bakery p { 
+            margin: 0 0 15px; 
         }
-        .buy-btn {
-            background: #9d503b;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
+        .buy-btn { 
+            background: #9d503b; 
+            color: #fff; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 4px; 
+            cursor: pointer; 
             margin: 0px 20px;
             text-decoration: none;
         }
@@ -157,12 +153,11 @@ if (session_status() === PHP_SESSION_NONE) {
             width: 60%;
         }
 
-
-        footer {
+        footer { 
             clear: both;
-            text-align: center;
-            color: #888;
-            margin: 40px 0 10px;
+            text-align: center; 
+            color: #888; 
+            margin: 40px 0 10px; 
         }
         .container1 {
             width: 49%;
@@ -179,7 +174,7 @@ if (session_status() === PHP_SESSION_NONE) {
         }
         .collection1 {
             margin-top: 20px;
-           
+            
         }
         .collection1::after {
             content: "";
@@ -211,7 +206,6 @@ if (session_status() === PHP_SESSION_NONE) {
             background-color: #840000;
         }
 
-
         .containerc p, .containerc h4 {
             display: none;
         }
@@ -228,14 +222,12 @@ if (session_status() === PHP_SESSION_NONE) {
             transition: transform 0.2s;
         }
 
-
         .faq-section {
             margin-bottom: 20px;
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 0 15px;
         }
-
 
         .toggle-icon {
             font-size: 12px;
@@ -257,7 +249,6 @@ if (session_status() === PHP_SESSION_NONE) {
             transition: opacity 0.5s;
         }
 
-
         /* --- CSS CHO HIỆU ỨNG HOVER SLIDESHOW SẢN PHẨM --- */
 .bakery .image-wrapper {
     position: relative !important;
@@ -267,7 +258,6 @@ if (session_status() === PHP_SESSION_NONE) {
     border-radius: 8px 8px 0 0 !important;
     display: block !important;
 }
-
 
 /* ÉP CÁC ẢNH PHẢI XẾP CHỒNG LÊN NHAU TẠI 1 VỊ TRÍ */
 .bakery .image-wrapper img.hover-frame {
@@ -282,7 +272,6 @@ if (session_status() === PHP_SESSION_NONE) {
     transition: opacity 0.3s ease-in-out !important; /* Hiệu ứng mờ dần */
 }
 
-
 /* Thanh tiến trình màu hồng */
 .bakery .progress-bar {
     position: absolute !important;
@@ -294,15 +283,13 @@ if (session_status() === PHP_SESSION_NONE) {
     width: 0;
 }
 
-
 @keyframes progressLoop {
     0% { width: 0; }
     100% { width: 100%; }
 }
 
-
 .bakery .image-wrapper.is-playing .progress-bar {
-    animation: progressLoop 1s linear infinite !important;
+    animation: progressLoop 1s linear infinite !important; 
 }
     </style>
 </head>
@@ -322,26 +309,23 @@ if (session_status() === PHP_SESSION_NONE) {
     <?php endif; ?>
         <div class="swiper myHeroSwiper">
         <div class="swiper-wrapper">
-           
-           
-
+            
+            
 
             <div class="swiper-slide">
-                <div class="hero-banner">
-                   
+                <div class="hero-banner"> 
+                    
                     <video autoplay loop muted playsinline class="bg-video">
                         <source src="/assets/img/make_cake.mp4" type="video/mp4">
                         Trình duyệt của bạn không hỗ trợ video.
                     </video>
 
-
                     <div class="overlay"></div>
                     <div class="banner-content">
-                        <p class="small-text" style="font-size: 20px; margin:0;">“Bánh luôn đạt</p>
-                        <h1 class="main-title">CHẤT LƯỢNG CAO</h1>
-                        <p class="sub-text">Để đảm bảo chất lượng hàng đầu, Bakery luôn chọn nguyên liệu chuẩn, đầu tư máy móc hiện đại, mang đến bánh chất lượng cao cho khách hàng.”</p>
+                        <p class="small-text" style="font-size: 20px; margin:0;">“Our cakes are always of</p>
+                        <h1 class="main-title">THE HIGHEST QUALITY</h1>
+                        <p class="sub-text">To ensure top quality, our bakery always selects premium ingredients and invests in modern machinery, delivering high-quality cakes to our customers.”</p>
                     </div>
-
 
                 </div>
             </div>
@@ -349,9 +333,9 @@ if (session_status() === PHP_SESSION_NONE) {
                         <div class="hero-banner" style="background-image: url('/assets/img/banner1.jpg');">
                             <div class="overlay"></div>
                             <div class="banner-content">
-                                <p style="font-size: 20px; margin:0;">“Ai cũng có</p>
-                                <h1 class="main-title">TRÁCH NHIỆM</h1>
-                                <p class="sub-text">Chăm chỉ, thân thiện, trách nhiệm là yêu cầu cốt lõi cho mọi nhân viên tại Bakery ngay từ những ngày đầu làm việc.”</p>
+                                <p style="font-size: 20px; margin:0;">“Everyone has</p>
+                                <h1 class="main-title">RESPONSIBILITY</h1>
+                                <p class="sub-text">Diligence, friendliness, and responsibility are core requirements for all staff at Bakery from their first day on the job.”</p>
                             </div>
                         </div>
                     </div>
@@ -359,16 +343,14 @@ if (session_status() === PHP_SESSION_NONE) {
                 <div class="hero-banner" style="background-image: url('https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=2072&auto=format&fit=crop');">
                     <div class="overlay"></div>
                     <div class="banner-content">
-                        <p style="font-size: 20px; margin:0;">“Hương vị</p>
-                        <h1 class="main-title">TRUYỀN THỐNG</h1>
-                        <p class="sub-text">Chúng tôi giữ gìn trọn vẹn công thức làm bánh thủ công, mang đến những mẻ bánh nóng hổi và thơm ngon nhất mỗi ngày.”</p>
+                        <p style="font-size: 20px; margin:0;">“Flavor</p>
+                        <h1 class="main-title">TRADITIONEL</h1>
+                        <p class="sub-text">We preserve the traditional recipe for handmade cakes, bringing you the freshest and most delicious cakes every day.”</p>
                     </div>
                 </div>
             </div>
 
-
         </div>
-
 
         <div class="swiper-button-next"></div>
         <div class="swiper-button-prev"></div>
@@ -431,7 +413,6 @@ if (session_status() === PHP_SESSION_NONE) {
         </div>
     </div>
 
-
     <div class="containerc" id="about">
         <h2>ABOUT BAKERY DELIVERY WITH BAKES BAKERY </h2>
         <div class="faq-section">
@@ -441,12 +422,9 @@ if (session_status() === PHP_SESSION_NONE) {
             </h3>
             <p>BAKES BAKERY is a one-of-a-kind bakery with an efficient delivery service. We craft our cakes and pastries with the finest ingredients and package them carefully to ensure both our customers and their recipients are 100% satisfied.
 
-
             <br><br>Our wide variety of baked goods means you can order online the perfect treat for any occasion. Send a classic red velvet cake for an anniversary or a bright assorted pastry box for a loved one's birthday.
 
-
             <br><br>Additionally, our sweet treats are ideal for a thank you gift, a get well soon gesture, congratulating someone on a promotion, or celebrating the birth of a new baby. And if you forget to mark your calendar for Valentine's Day or Mother's Day, don't worry — we're pros at last-minute deliveries.
-
 
             <br><br>Need some inspiration? Browse the Collection tab on our website to see what cakes our expert bakers recommend. Once you've made your choice, all you need to do is order online and we'll get started on your bakery delivery right away.</p>
         </div>
@@ -457,15 +435,11 @@ if (session_status() === PHP_SESSION_NONE) {
             </h3>
             <p>With our extensive selection of cakes and pastries, you're sure to find the perfect treat for your loved one. Here are the types of baked goods we offer:
 
-
             <span><br><br><b>Whole Cakes</b></span>: Surprise your loved one with a timeless signature cake in a flavor they'll adore, whether it's elegant vanilla, brilliant red velvet, rich chocolate, or refreshing matcha.
-
 
             <span><br><b>Chilled Desserts</b></span>: Our soft and delicate mousse and tiramisu cakes add sweetness and elegance to any tea party or office gathering.
 
-
             <span><br><b>Fresh Pastries</b></span>: Crispy croissants and buttery tarts add the perfect touch of joy to any morning routine.
-
 
             <span><br><b>Assorted Treat Boxes</b></span>: While one pastry is delicious on its own, consider a mixed box of assorted cookies and snacks — the more the merrier!</p>
         </div>
@@ -477,18 +451,13 @@ if (session_status() === PHP_SESSION_NONE) {
             <p>Here are three of the many reasons you should order and send treats through Bakes Bakery.<br>
                 <b>1. Premium Ingredients</b><br>
 
-
                 Thanks to Bakes Bakery, you don't have to travel to Europe to find authentic pastries. We source our ingredients from top eco-friendly suppliers, using premium butter, pure chocolate, and fresh seasonal fruits. Through our strict selection process, we can provide you with fresh, delicious, and high-quality baked goods year-round.
-
 
                 <br><br><b>2. Baked Freshly with Love</b><br>
 
-
                 We treat every order that comes to our bakery with the utmost care and attention. Our skilled bakers craft each cake with an exquisite touch, bake them fresh daily to ensure optimal taste, and then carefully package your order in our unique signature pastry box.
 
-
                 <br><br><b>3. Fast & Safe Same-Day Delivery</b><br>
-
 
                 At Bakes Bakery, we pride ourselves on quick and efficient delivery services. We deliver our cakes with the utmost care to keep their shape and decoration intact. For last-minute purchases, we also offer same-day delivery in the city. Check our delivery zones to see how soon we can deliver fresh cakes near you.
             </p>
@@ -505,13 +474,11 @@ if (session_status() === PHP_SESSION_NONE) {
             </h4>
             <p>Our delivery fees vary from 15.000₫ for smaller orders to 30.000₫ for large custom cakes, depending on your distance. The large majority of our standard deliveries are around 20.000₫.</p>
 
-
             <h4>
                 <b>What Payment Methods Do You Accept?</b>
                 <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
             </h4>
             <p>We currently accept Visa, Mastercard, debit and credit card payments. You can also check out online using mobile banking.</p>
-
 
             <h4>
                 <b>How Do You Package The Cakes?</b>
@@ -519,13 +486,11 @@ if (session_status() === PHP_SESSION_NONE) {
             </h4>
             <p>We place our cakes in sturdy, custom-fitted cake boxes with cooling gel packs if necessary, ensuring they remain perfectly intact, fresh, and beautiful during transit.</p>
 
-
             <h4>
                 <b>How Do I Know When My Order Is on the Way?</b>
                 <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
             </h4>
             <p>Once your order leaves our bakery, we'll send you a photo of your cake to notify you that it's on the way. After that, you can follow it with our online order tracking feature.</p>
-
 
             <h4>
                 <b>How Long Will My Cake Last?</b>
@@ -547,11 +512,10 @@ if (session_status() === PHP_SESSION_NONE) {
     <?php
     include 'connectdb.php';
 
-
     $sql = "
-    SELECT
+    SELECT 
         p.id,
-        p.name,
+        p.name, 
         p.image AS primary_image, /* Lấy ảnh gốc làm ảnh đại diện */
         p.price,
         /* Gom tất cả ảnh phụ từ bảng product_images thành 1 chuỗi */
@@ -567,7 +531,6 @@ if (session_status() === PHP_SESSION_NONE) {
     ";
     $result = $conn->query($sql);
 
-
     $bakeries = [];
     if ($result && $result->num_rows > 0) {
         while($row = $result->fetch_assoc()) {
@@ -576,7 +539,6 @@ if (session_status() === PHP_SESSION_NONE) {
     }
     ?>
 
-
 <script>
     // 1. NHẬN DỮ LIỆU TỪ PHP
     const bakeries = <?php echo json_encode($bakeries); ?>;
@@ -584,7 +546,6 @@ if (session_status() === PHP_SESSION_NONE) {
     const imagesPerSlide = 3;
     const slideshow = document.getElementById('bakeries-slideshow');
     let autoSlide; // Biến lưu trữ bộ đếm thời gian của Slide sản phẩm
-
 
     // 2. HÀM VẼ GIAO DIỆN SẢN PHẨM VÀ ẢNH
     function renderSlide() {
@@ -595,7 +556,6 @@ if (session_status() === PHP_SESSION_NONE) {
             const div = document.createElement('div');
             div.className = 'bakery';
 
-
             // Xử lý gộp ảnh chính và ảnh phụ
             let allImages = [bakery.primary_image];
             if (bakery.gallery_images) {
@@ -603,13 +563,11 @@ if (session_status() === PHP_SESSION_NONE) {
                 allImages = allImages.concat(gallery);
             }
 
-
             // Tạo các thẻ HTML cho ảnh
             let imgTags = allImages.map((img, index) => {
                 let opacity = index === 0 ? '1' : '0'; // Chỉ hiện ảnh đầu tiên
                 return `<img src="/assets/img/${img}" class="hover-frame" style="opacity: ${opacity};">`;
             }).join('');
-
 
             // In ra màn hình (Gắn sự kiện di chuột vào class image-wrapper)
             div.innerHTML = `
@@ -626,24 +584,20 @@ if (session_status() === PHP_SESSION_NONE) {
         }
     }
 
-
     function nextBakery() {
         current = (current + 1) % bakeries.length;
         renderSlide();
     }
-
 
     function prevBakery() {
         current = (current - 1 + bakeries.length) % bakeries.length;
         renderSlide();
     }
 
-
     function startAutoSlide() {
         // Tự động chuyển sản phẩm sau 3 giây
         autoSlide = setInterval(nextBakery, 3000);
     }
-
 
     function stopAutoSlide() {
         // Dừng chuyển sản phẩm
@@ -651,48 +605,40 @@ if (session_status() === PHP_SESSION_NONE) {
     }
 
 
-
-
     function playGallery(wrapper) {
-        stopAutoSlide();
-       
+        stopAutoSlide(); 
+        
         const frames = wrapper.querySelectorAll('.hover-frame');
         if (frames.length <= 1) return; // Không có ảnh phụ thì không làm gì
-       
+        
         wrapper.classList.add('is-playing'); // Chạy thanh tiến trình màu hồng
         let currentIndex = 0;
 
-
         // Bắt đầu tua ảnh mỗi 1 giây
         wrapper.galleryInterval = setInterval(() => {
-            frames[currentIndex].style.opacity = '0';
-            currentIndex = (currentIndex + 1) % frames.length;
-            frames[currentIndex].style.opacity = '1';
-        }, 1000);
+            frames[currentIndex].style.opacity = '0'; 
+            currentIndex = (currentIndex + 1) % frames.length; 
+            frames[currentIndex].style.opacity = '1'; 
+        }, 1000); 
     }
-
 
     function stopGallery(wrapper) {
         // Tắt tua ảnh
-        clearInterval(wrapper.galleryInterval);
+        clearInterval(wrapper.galleryInterval); 
         wrapper.classList.remove('is-playing'); // Tắt thanh tiến trình
-
 
         // Trả về ảnh gốc
         const frames = wrapper.querySelectorAll('.hover-frame');
         frames.forEach((frame, index) => {
-            frame.style.opacity = index === 0 ? '1' : '0';
+            frame.style.opacity = index === 0 ? '1' : '0'; 
         });
 
-
         // QUAN TRỌNG: Rút chuột ra thì ra lệnh cho slide sản phẩm trượt tiếp
-        startAutoSlide();
+        startAutoSlide(); 
     }
-
 
     renderSlide();
     startAutoSlide();
-
 
     document.querySelectorAll('.containerc p, .containerc h4').forEach(el => el.style.display = 'none');
     document.querySelectorAll('.containerc .faq-section h3').forEach(h3 => {
@@ -722,7 +668,6 @@ if (session_status() === PHP_SESSION_NONE) {
         });
     });
 
-
     document.querySelectorAll('.containerc .faq-section h4').forEach(h4 => {
         h4.addEventListener('click', function(e) {
             e.stopPropagation();
@@ -737,9 +682,7 @@ if (session_status() === PHP_SESSION_NONE) {
     });
 </script>
 
-
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-
 
 <script>
     var swiper = new Swiper(".myHeroSwiper", {
@@ -761,4 +704,3 @@ if (session_status() === PHP_SESSION_NONE) {
 </script>
 </body>
 </html>
-

@@ -1,364 +1,205 @@
 <?php
-
-
 session_start();
 include '../../connectdb.php';
 
-
-// Handle delete review (AJAX)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
-    $id = intval($_POST['delete_id']);
-    $stmt = $conn->prepare("DELETE FROM reviews WHERE id = ?");
-    $stmt->bind_param('i', $id);
-    $stmt->execute();
-    echo 'success';
+// Kiểm tra quyền Admin
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../../index.php");
     exit;
 }
 
-
-
-
-// Handle filter/search
-$where = [];
-$params = [];
-$types = '';
-if (!empty($_GET['user'])) {
-    $where[] = "(u.full_name LIKE ? OR u.email LIKE ?)";
-    $params[] = '%' . $_GET['user'] . '%';
-    $params[] = '%' . $_GET['user'] . '%';
-    $types .= 'ss';
-}
-if (!empty($_GET['product'])) {
-    $where[] = "p.name LIKE ?";
-    $params[] = '%' . $_GET['product'] . '%';
-    $types .= 's';
-}
-if (!empty($_GET['date'])) {
-    $where[] = "DATE(r.created_at) = ?";
-    $params[] = $_GET['date'];
-    $types .= 's';
-}
-if (isset($_GET['rating']) && $_GET['rating'] !== '') {
-    $where[] = "r.rating = ?";
-    $params[] = intval($_GET['rating']);
-    $types .= 'i';
-}
-$where_sql = $where ? 'WHERE ' . implode(' AND ', $where) : '';
-
-
-// Total reviews
-$total_reviews = $conn->query("SELECT COUNT(*) as total FROM reviews")->fetch_assoc()['total'];
-
-
-// Pagination
-$limit = 10; // 10 reviews per page
-$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$offset = ($page - 1) * $limit;
-
-
-// Get reviews data (with admin_reply and admin_created_at)
-$sql = "
-    SELECT r.*, u.full_name, u.email, p.name as product_name
-    FROM reviews r
-    LEFT JOIN users u ON r.user_id = u.id
-    LEFT JOIN products p ON r.product_id = p.id
-    $where_sql
-    ORDER BY r.created_at DESC
-    LIMIT ? OFFSET ?
-";
-if ($params) {
-    $types_with_limit = $types . 'ii';
-    $params_with_limit = array_merge($params, [$limit, $offset]);
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types_with_limit, ...$params_with_limit);
-} else {
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param('ii', $limit, $offset);
-}
-$stmt->execute();
-$result = $stmt->get_result();
-$reviews = $result->fetch_all(MYSQLI_ASSOC);
-
-
-// Get total filtered
-$count_sql = "
-    SELECT COUNT(*) as total
-    FROM reviews r
-    LEFT JOIN users u ON r.user_id = u.id
-    LEFT JOIN products p ON r.product_id = p.id
-    $where_sql
-";
-if ($params) {
-    $count_stmt = $conn->prepare($count_sql);
-    $count_stmt->bind_param($types, ...$params);
-} else {
-    $count_stmt = $conn->prepare($count_sql);
-}
-$count_stmt->execute();
-$count_result = $count_stmt->get_result();
-$total_filtered = $count_result->fetch_assoc()['total'];
-$total_pages = max(1, ceil($total_filtered / $limit));
-// Handle reply (AJAX)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reply_id'], $_POST['reply_content'])) {
-    $id = intval($_POST['reply_id']);
-    $reply = trim($_POST['reply_content']);
-    $now = date('Y-m-d H:i:s');
-    $stmt = $conn->prepare("UPDATE reviews SET admin_reply = ?, admin_created_at = ? WHERE id = ?");
-    $stmt->bind_param('ssi', $reply, $now, $id);
-    $stmt->execute();
-
-
-    // Get review info for notification
-    $review_info = $conn->query("SELECT user_id, product_id FROM reviews WHERE id = $id")->fetch_assoc();
-    if ($review_info) {
-        $type = 'admin_message';
-        $message = 'Admin replied to your review: ' . $reply;
-        $created_at = $now;
-        $noti_stmt = $conn->prepare("INSERT INTO notifications (user_id, target_user_id, product_id, type, message, created_at) VALUES (?, ?, ?, ?, ?, ?)");
-        $noti_stmt->bind_param("iiisss", $review_info['user_id'], $review_info['user_id'], $review_info['product_id'], $type, $message, $created_at);
-        $noti_stmt->execute();
-        $noti_stmt->close();
+// Xử lý xóa (Chỉ xóa người dùng không phải Admin)
+if (isset($_POST['delete_id'])) {
+    $del_id = intval($_POST['delete_id']);
+    // Kiểm tra role trước khi xóa
+    $check = $conn->prepare("SELECT role FROM users WHERE id = ?");
+    $check->bind_param("i", $del_id);
+    $check->execute();
+    $check->bind_result($role);
+    $check->fetch();
+    $check->close();
+    
+    if ($role !== 'admin') {
+        $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->bind_param("i", $del_id);
+        $stmt->execute();
+        $stmt->close();
     }
-
-
-    // Return reply and created_at as JSON
-    echo json_encode([
-        'reply' => htmlspecialchars($reply),
-        'created_at' => date('Y-m-d H:i', strtotime($now))
-    ]);
+    header("Location: mana_users.php");
     exit;
+}
+
+// Xử lý chỉnh sửa thông tin (Chỉ dành cho người dùng không phải Admin)
+$edit_success = false;
+$edit_errors = [];
+if (isset($_POST['edit_id']) && isset($_POST['full_name']) && isset($_POST['email'])) {
+    $edit_id = intval($_POST['edit_id']);
+    $full_name = trim($_POST['full_name']);
+    $email = trim($_POST['email']);
+    $phone = trim($_POST['phone']);
+    $address = trim($_POST['address']);
+    
+    $check = $conn->prepare("SELECT role FROM users WHERE id = ?");
+    $check->bind_param("i", $edit_id);
+    $check->execute();
+    $check->bind_result($role);
+    $check->fetch();
+    $check->close();
+    
+    if ($role !== 'admin') {
+        $stmt = $conn->prepare("UPDATE users SET full_name=?, email=?, phone=?, address=? WHERE id=?");
+        $stmt->bind_param("ssssi", $full_name, $email, $phone, $address, $edit_id);
+        if ($stmt->execute()) {
+            $edit_success = true;
+        } else {
+            $edit_errors[] = "Update failed.";
+        }
+        $stmt->close();
+    } else {
+        $edit_errors[] = "Cannot edit admin user.";
+    }
+}
+
+// Truy xuất tất cả người dùng
+$result = $conn->query("SELECT id, full_name, email, phone, address, role FROM users ORDER BY role ASC, id ASC");
+$users = [];
+while ($row = $result->fetch_assoc()) {
+    $users[] = $row;
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin - Manage Reviews</title>
+    <title>Manage Users | Bakes Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-    body {
-        font-family: 'Segoe UI', Arial, sans-serif;
-        background: #fff;
-        margin: 0;
-    }
-    .admin-navbar {
-            background: #5C3A21;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            height: 60px;
-        }
-        .admin-navbar a {
-            color: #fff;
-            text-decoration: none;
-            padding: 0 32px;
-            font-size: 18px;
-            line-height: 60px;
-            display: block;
-            transition: background 0.2s;
-        }
-        .admin-navbar a:hover, .admin-navbar a.active {
-            background: #7A5230;
-        }
-    .breadcrumbs {
-        margin: 24px 0 10px 0;
-        font-size: 1.08rem;
-        color: #888;
-    }
-    .breadcrumbs a { color: #7A5230; text-decoration: none; }
-    .review-stats {
-        margin-bottom: 18px;
-        font-size: 1.08rem;
-    }
-    .review-stats span { color: #7A5230; font-weight: 500; }
-    .review-filter {
-        background: #faf6f8;
-        border-radius: 8px;
-        padding: 14px 18px;
-        margin-bottom: 18px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        align-items: center;
-    }
-    .review-filter input, .review-filter select {
-        padding: 7px 12px;
-        border-radius: 5px;
-        border: 1px solid #ddd;
-        font-size: 1rem;
-        min-width: 170px;
-    }
-    .review-filter button {
-        background: #7A5230;
-        color: #fff;
-        padding: 7px 18px;
-        border-radius: 5px;
-        border: none;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: opacity 0.15s;
-    }
-    .review-filter button:hover { opacity: 0.85; }
-    .review-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: #fff;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px #eee;
-    }
-    .review-table th, .review-table td {
-        padding: 12px 14px;
-        border-bottom: 1px solid #f0e0de;
-        text-align: left;
-        font-size: 1.05rem;
-        vertical-align: top;
-    }
-    .review-table th {
-        background: #f8eaea;
-        color: #7A5230;
-        font-weight: 600;
-        text-align: left;
-    }
-    .review-table tr:last-child td { border-bottom: none; }
-    .review-table td {
-        background: #fff;
-    }
-    .review-table tr:nth-child(even) { background: #faf6f8; }
-    .review-table tr:hover td { background: #f5eaea; transition: background 0.2s; }
-    .review-actions button {
-        border: none;
-        background: #f8eaea;
-        cursor: pointer;
-        color: #7A5230;
-        font-size: 1.15rem;
-        padding: 5px 10px;
-        border-radius: 5px;
-        margin-right: 4px;
-        transition: background 0.1s;
-    }
-    .review-actions button:hover {
-        background: #f2d6d6;
-    }
-    .bulk-actions {
-        margin: 16px 0 0 0;
-        display: flex;
-        gap: 10px;
-    }
-    .bulk-actions button {
-        background: #7A5230;
-        color: #fff;
-        border: none;
-        border-radius: 5px;
-        padding: 6px 18px;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: opacity 0.15s;
-    }
-    .bulk-actions button:hover { opacity: 0.85; }
-    .reply-content {
-        margin-top: 10px;
-        color: #219653;
-        font-size: 1.05em;
-        font-weight: 500;
-        background: #f3fff3;
-        border-left: 4px solid #2ecc40;
-        border-radius: 5px;
-        padding: 8px 12px;
-        display: block;
-        max-width: 420px;
-        white-space: pre-line;
-        transition: background 0.2s;
-        animation: fadeIn 0.5s;
-    }
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px);}
-        to { opacity: 1; transform: translateY(0);}
-    }
-    .reply-content .reply-date {
-        color: #888;
-        font-size: 0.97em;
-        font-weight: 400;
-        margin-left: 8px;
-    }
-    .reply-box {
-        margin-top: 8px;
-        margin-left: 70%;
-        background: #f8f8f8;
-        border-radius: 6px;
-        padding: 10px 12px;
-        border: 1px solid #eee;
-        max-width: 350px;
-        box-shadow: 0 2px 8px #e0f7e0;
-        animation: fadeIn 0.3s;
-    }
-    .pagination {
-        margin: 30px 0 30px 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 6px;
-        font-size: 1.08rem;
-    }
-    .pagination a, .pagination span {
-        min-width: 32px;
-        min-height: 32px;
-        line-height: 32px;
-        padding: 0;
-        border-radius: 6px;
-        border: 1.5px solid #e2bcbc;
-        background: #fff;
-        color: #7A5230;
-        text-decoration: none;
-        font-weight: 500;
-        text-align: center;
-        display: inline-block;
-        box-sizing: border-box;
-        font-size: 1rem;
-        transition: background 0.15s, color 0.15s;
-    }
-    .pagination a:hover {
-        background: #f8eaea;
-        color: #7A5230;
-    }
-    .pagination .active {
-        background: #7A5230;
-        color: #fff;
-        font-weight: bold;
-        border-color: #d17c7c;
-        pointer-events: none;
-    }
-    .pagination .dots {
-        background: none;
-        border: none;
-        color: #bbb;
-        padding: 0 6px;
-        min-width: unset;
-        min-height: unset;
-        line-height: 32px;
-        font-size: 1.1em;
-    }
-    .toast {
-        position: fixed;
-        left: 50%;
-        bottom: 40px;
-        transform: translateX(-50%);
-        background: #2ecc40;
-        color: #fff;
-        padding: 14px 32px;
-        border-radius: 8px;
-        font-size: 1.1rem;
-        box-shadow: 0 2px 12px #aaa;
-        z-index: 9999;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.4s;
-    }
-    .toast.show { opacity: 1; pointer-events: auto; }
-    @media (max-width: 900px) {
-        .review-table, .review-table th, .review-table td { font-size: 0.97rem; }
-        .review-table, .review-table th, .review-table td { display: block; width: 100%; }
-        .review-table th, .review-table td { box-sizing: border-box; }
-        .review-table tr { margin-bottom: 18px; border-radius: 10px; box-shadow: 0 2px 8px #eee; }
-    }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR DỌC */
+        .sidebar { width: 260px; background: #343a40; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-brand { padding: 25px 20px; font-size: 1.6em; font-weight: bold; text-align: center; border-bottom: 1px solid #4f5962; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .sidebar-brand img { width: 38px; height: 38px; object-fit: contain; display: block; }
+        .sidebar-brand span { color: #b97a56; }
+        .nav-menu { list-style: none; padding: 0; margin: 15px 0; flex: 1; overflow-y: auto; }
+        .nav-menu li a { display: block; padding: 12px 20px; color: #c2c7d0; text-decoration: none; transition: 0.3s; }
+        .nav-menu li a i { margin-right: 12px; width: 20px; text-align: center; }
+        .nav-menu li a:hover, .nav-menu li a.active { background: #494e53; color: #fff; border-left: 4px solid #b97a56; }
+        
+        /* MAIN WRAPPER */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-header { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .content { padding: 25px; overflow-y: auto; flex: 1; }
+
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 25px; border-top: 4px solid #b97a56; }
+        h2 { color: #333; margin-top: 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f9f9f9; color: #555; font-weight: bold; font-size: 0.9em; text-transform: uppercase; }
+        
+        /* ROLE BADGES */
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; }
+        .badge-admin { background: #f8d7da; color: #721c24; }
+        .badge-staff { background: #d1ecf1; color: #0c5460; }
+        .badge-customer { background: #e2e3e5; color: #383d41; }
+
+        /* ACTIONS */
+        .btn-action { padding: 6px 10px; border-radius: 4px; text-decoration: none; font-size: 0.85em; color: #fff; border: none; cursor: pointer; margin-right: 5px; }
+        .btn-edit { background: #007bff; }
+        .btn-delete { background: #dc3545; }
+        .btn-save { background: #28a745; }
+        
+        .edit-form input { padding: 6px; border: 1px solid #ddd; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .success-msg { color: #155724; background: #d4edda; padding: 10px; border-radius: 5px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/assets/img/logo.png" alt="Bakes Logo">
+            Bakes <span>Admin</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="dashboard.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="mana_orders.php"><i class="fa-solid fa-cart-shopping"></i> Manage Orders</a></li>
+            <li><a href="mana_products.php"><i class="fa-solid fa-cookie-bite"></i> Manage Products</a></li>
+            <li><a href="mana_reviews.php"><i class="fa-solid fa-star"></i> Manage Reviews</a></li>
+            <li><a href="mana_users.php" class="active"><i class="fa-solid fa-users"></i> Manage Users</a></li>
+            <li><a href="mana_noti.php"><i class="fa-solid fa-bell"></i> Notifications</a></li>
+            <li style="margin-top: 20px;"><a href="/views/auth/logout.php" onclick="return confirm('Logout?');" style="color: #ff7675;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div style="font-weight: bold; color: #555;">User Account Management</div>
+            <div style="color: #888;">Logged in as <strong>Admin</strong></div>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <h2>System Users</h2>
+                <?php if ($edit_success): ?><div class="success-msg">User updated successfully!</div><?php endif; ?>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($users as $user): ?>
+                        <tr>
+                            <td>#<?php echo $user['id']; ?></td>
+                            <td>
+                                <?php if (isset($_GET['edit']) && $_GET['edit'] == $user['id'] && $user['role'] !== 'admin'): ?>
+                                    <form method="post" id="form-<?php echo $user['id']; ?>" class="edit-form">
+                                        <input type="hidden" name="edit_id" value="<?php echo $user['id']; ?>">
+                                        <input type="text" name="full_name" value="<?php echo htmlspecialchars($user['full_name']); ?>" required>
+                                <?php else: ?>
+                                    <strong><?php echo htmlspecialchars($user['full_name']); ?></strong>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if (isset($_GET['edit']) && $_GET['edit'] == $user['id'] && $user['role'] !== 'admin'): ?>
+                                    <input type="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                                <?php else: ?>
+                                    <?php echo htmlspecialchars($user['email']); ?>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <span class="badge badge-<?php echo strtolower($user['role']); ?>">
+                                    <?php echo strtoupper($user['role']); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php if ($user['role'] !== 'admin'): ?>
+                                    <?php if (isset($_GET['edit']) && $_GET['edit'] == $user['id']): ?>
+                                        <button type="submit" class="btn-action btn-save"><i class="fa-solid fa-check"></i></button>
+                                        </form>
+                                        <a href="mana_users.php" class="btn-action" style="background:#6c757d;"><i class="fa-solid fa-xmark"></i></a>
+                                    <?php else: ?>
+                                        <a href="mana_users.php?edit=<?php echo $user['id']; ?>" class="btn-action btn-edit"><i class="fa-solid fa-user-pen"></i> Edit</a>
+                                        <form method="post" style="display:inline;">
+                                            <input type="hidden" name="delete_id" value="<?php echo $user['id']; ?>">
+                                            <button type="submit" class="btn-action btn-delete" onclick="return confirm('Delete this user?');"><i class="fa-solid fa-user-minus"></i></button>
+                                        </form>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <small style="color:#ccc;">Protected</small>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

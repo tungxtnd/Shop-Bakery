@@ -3,7 +3,7 @@
 ob_start();
 session_start();
 include '../../includes/header.php';
-include '../../connectdb.php';  
+include '../../connectdb.php';	
 $order_id = $_GET['order_id'] ?? 0;
 $order_success = false;
 $account_created = false;
@@ -16,7 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
     $order_date = date('Y-m-d H:i:s');
     $status = 'Pending';
     $account_created = false;
-
 
     if (!isset($_SESSION['user_id'])) {
         $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
@@ -52,7 +51,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
     if ($stmt->execute()) {
         $order_id = $stmt->insert_id;
 
-
         // Add notification for new order (pending)
         $type = 'order_status';
         $message = 'Your order #' . $order_id . ' has been placed and is pending confirmation.';
@@ -61,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
         $noti_stmt->bind_param("iiisss", $user_id, $user_id, $order_id, $type, $message, $created_at);
         $noti_stmt->execute();
         $noti_stmt->close();
-
 
         // Insert order items
         if (isset($_POST['checkout_items'])) {
@@ -92,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
                 }
                 // Remove from cart
                 $conn->query("DELETE FROM cart_items WHERE user_id = $user_id AND id IN ($ids)");
+                $order_success = true;
             } else {
                 $order_error = "No valid cart items selected.";
             }
@@ -126,35 +124,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
 }
 // --- BẮT ĐẦU: TÍCH HỢP MOMO API ---
     $payment_method = $_POST['payment_method'] ?? 'cod';
-   
+    
     if (isset($order_success) && $order_success == true && $payment_method === 'momo') {
         $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
 
-
         // THAY BẰNG KEY TRONG TÀI KHOẢN DEV MOMO CỦA BẠN
-        $partnerCode = "MOMOBKUN20180529";
+        $partnerCode = "MOMOBKUN20180529"; 
         $accessKey = "klm05TvNBzhg7h7j";
         $secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
-       
+        
         $orderInfo = "Thanh toán đơn hàng Bakes #" . $order_id;
         $amount = (string)$total_amount;
         $orderId_momo = $order_id . "_" . time(); // Nối thêm time() để mã đơn MoMo không bị trùng
-       
+        
         // CHÚ Ý: Thay dải link ngrok của bạn vào đây
        
-       
-        // Link trả về giao diện sau khi khách quét QR xong
-        $redirectUrl = "http://shop-bakery-management.test//views/customer/process_payment.php?momo_return=1";
-        // Link chạy ngầm để MoMo báo server cập nhật database
-        $ipnUrl =  "http://shop-bakery-management.test/views/customer/momo_ipn.php";
-       
+        
+        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $baseUrl = $scheme . '://' . $host;
+        $redirectUrl = $baseUrl . '/views/customer/process_payment.php?momo_return=1';
+        $ipnUrl = $baseUrl . '/views/customer/momo_ipn.php'; 
+        
         $extraData = "";
         $requestId = time() . "";
         $requestType = "captureWallet";
-       
+        
         $rawHash = "accessKey=".$accessKey."&amount=".$amount."&extraData=".$extraData."&ipnUrl=".$ipnUrl."&orderId=".$orderId_momo."&orderInfo=".$orderInfo."&partnerCode=".$partnerCode."&redirectUrl=".$redirectUrl."&requestId=".$requestId."&requestType=".$requestType;
         $signature = hash_hmac("sha256", $rawHash, $secretKey);
-       
+        
         $data = array(
             'partnerCode' => $partnerCode,
             'partnerName' => "Bakes Bakery",
@@ -171,7 +169,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
             'signature' => $signature
         );
 
-
         // Dùng cURL gửi request lên MoMo
         $ch = curl_init($endpoint);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -180,12 +177,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen(json_encode($data))));
         $result = curl_exec($ch);
         curl_close($ch);
-       
+        
         $jsonResult = json_decode($result, true);
-       
+        
         // Chuyển hướng người dùng sang trang quét mã QR của MoMo
         if (isset($jsonResult['payUrl'])) {
             header('Location: ' . $jsonResult['payUrl']);
+            exit;
+        } else {
+            // Hiện thông báo lỗi nếu MoMo từ chối tạo mã (rất quan trọng để biết tại sao lỗi)
+            $error_msg = $jsonResult['message'] ?? 'Lỗi không xác định từ MoMo';
+            echo "<script>alert('Không thể tạo mã QR MoMo: " . $error_msg . "'); window.history.back();</script>";
             exit;
         }
     }
@@ -283,7 +285,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
         </script>
     <?php endif; ?>
 
-
 <?php if (!empty($order_success)): ?>
     <div id="order-toast" class="order-toast">Your order has been placed and is pending confirmation.</div>
     <script>
@@ -295,7 +296,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
         }, 2500);
     </script>
 <?php endif; ?>
-
 
 <div class="processpay-container">
     <div class="processpay-icon">
@@ -320,4 +320,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
 </body>
 <?php include '../../includes/footer.php'; ?>
 </html>
-

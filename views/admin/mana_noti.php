@@ -1,18 +1,22 @@
 <?php
-
-
 session_start();
 include '../../connectdb.php';
 
-
-// Check if admin
+// Kiểm tra quyền Admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../../homepage.php");
+    header("Location: ../../index.php");
     exit;
 }
 
+// Xử lý xóa thông báo
+if (isset($_POST['delete_id'])) {
+    $del_id = intval($_POST['delete_id']);
+    $conn->query("DELETE FROM notifications WHERE id = $del_id");
+    header("Location: mana_noti.php");
+    exit;
+}
 
-// Fetch all notifications
+// Truy xuất tất cả thông báo với đầy đủ thông tin liên kết
 $sql = "SELECT n.*, u.full_name AS user_name, tu.full_name AS target_user_name, p.name AS product_name, o.id AS order_number
         FROM notifications n
         LEFT JOIN users u ON n.user_id = u.id
@@ -25,110 +29,138 @@ $notifications = [];
 while ($row = $result->fetch_assoc()) {
     $notifications[] = $row;
 }
-
-
-// Handle delete
-if (isset($_POST['delete_id'])) {
-    $del_id = intval($_POST['delete_id']);
-    $conn->query("DELETE FROM notifications WHERE id = $del_id");
-    header("Location: mana_noti.php");
-    exit;
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Notifications</title>
+    <title>Manage Notifications | Bakes Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #f8f8f8; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
-        .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px #eee; padding: 32px; }
-        h2 { color: #7A5230; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 24px; }
-        th, td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; text-align: left; }
-        th { background: #f8f8f8; color: #7A5230; }
-        .noti-type-order_status { color: #1e90ff; }
-        .noti-type-admin_message { color: #7A5230; }
-        .noti-type-review { color: #2ecc40; }
-        .noti-type-login, .noti-type-logout { color: #888; }
-        .noti-date { font-size: 0.98em; color: #888; }
-        .empty { text-align: center; color: #aaa; padding: 40px 0; }
-        .delete-btn {
-            background: #f44336; color: #fff; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer;
-        }
-        .admin-navbar {
-            background: #5C3A21;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            height: 60px;
-        }
-        .admin-navbar a {
-            color: #fff;
-            text-decoration: none;
-            padding: 0 32px;
-            font-size: 18px;
-            line-height: 60px;
-            display: block;
-            transition: background 0.2s;
-        }
-        .admin-navbar a:hover, .admin-navbar a.active {
-            background: #7A5230;
-        }
-        .delete-btn:hover { background: #b94a48; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR DỌC ĐỒNG BỘ */
+        .sidebar { width: 260px; background: #343a40; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-brand { padding: 25px 20px; font-size: 1.6em; font-weight: bold; text-align: center; border-bottom: 1px solid #4f5962; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .sidebar-brand img { width: 38px; height: 38px; object-fit: contain; display: block; }
+        .sidebar-brand span { color: #b97a56; }
+        .nav-menu { list-style: none; padding: 0; margin: 15px 0; flex: 1; overflow-y: auto; }
+        .nav-menu li a { display: block; padding: 12px 20px; color: #c2c7d0; text-decoration: none; transition: 0.3s; }
+        .nav-menu li a i { margin-right: 12px; width: 20px; text-align: center; }
+        .nav-menu li a:hover, .nav-menu li a.active { background: #494e53; color: #fff; border-left: 4px solid #b97a56; }
+        
+        /* MAIN WRAPPER */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-header { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .content { padding: 25px; overflow-y: auto; flex: 1; }
+
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 25px; border-top: 4px solid #b97a56; }
+        h2 { color: #333; margin-top: 0; }
+        
+        /* BẢNG THÔNG BÁO */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.9em; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f9f9f9; color: #555; font-weight: bold; text-transform: uppercase; font-size: 0.85em; }
+        
+        /* MÀU SẮC THEO LOẠI THÔNG BÁO */
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; }
+        .noti-order { background: #e7f3ff; color: #007bff; }
+        .noti-admin { background: #fff4e5; color: #b97a56; }
+        .noti-review { background: #eafbe7; color: #28a745; }
+        .noti-auth { background: #f2f2f2; color: #888; }
+
+        .noti-date { font-size: 0.85em; color: #888; display: block; margin-top: 4px; }
+        .btn-delete { background: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 6px 10px; cursor: pointer; transition: 0.2s; }
+        .btn-delete:hover { background: #c82333; }
+        .empty { text-align: center; color: #aaa; padding: 40px 0; font-style: italic; }
     </style>
 </head>
 <body>
-    <nav class="admin-navbar">
-        <a href="dashboard.php">Dashboard</a>
-        <a href="mana_orders.php">Manage Orders</a>
-        <a href="mana_products.php">Manage Products</a>
-        <a href="mana_reviews.php">Manage Reviews</a>
-        <a href="mana_users.php">Manage Users</a>
-        <a href="mana_noti.php" class="active">Manage Notifications</a>
-        <a href="/views/auth/logout.php" style="margin-left:auto;" onclick="return confirm('Are you sure you want to logout?');">Logout</a>
-    </nav>
-    <div class="container">
-        <h2>Manage Notifications</h2>
-        <?php if (empty($notifications)): ?>
-            <div class="empty">No notifications found.</div>
-        <?php else: ?>
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>User</th>
-                <th>Target User</th>
-                <th>Product</th>
-                <th>Order</th>
-                <th>Message</th>
-                <th>Date</th>
-                <th>Action</th>
-            </tr>
-            <?php foreach ($notifications as $noti): ?>
-            <tr>
-                <td><?php echo $noti['id']; ?></td>
-                <td class="noti-type-<?php echo htmlspecialchars($noti['type']); ?>">
-                    <?php echo ucfirst(str_replace('_', ' ', $noti['type'])); ?>
-                </td>
-                <td><?php echo $noti['user_name'] ? htmlspecialchars($noti['user_name']) : '-'; ?></td>
-                <td><?php echo $noti['target_user_name'] ? htmlspecialchars($noti['target_user_name']) : '-'; ?></td>
-                <td><?php echo $noti['product_name'] ? htmlspecialchars($noti['product_name']) : '-'; ?></td>
-                <td><?php echo $noti['order_number'] ? 'Order #' . htmlspecialchars($noti['order_number']) : '-'; ?></td>
-                <td><?php echo htmlspecialchars($noti['message']); ?></td>
-                <td class="noti-date"><?php echo date('d/m/Y H:i', strtotime($noti['created_at'])); ?></td>
-                <td>
-                    <form method="post" style="display:inline;">
-                        <input type="hidden" name="delete_id" value="<?php echo $noti['id']; ?>">
-                        <button type="submit" class="delete-btn" onclick="return confirm('Delete this notification?');">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </table>
-        <?php endif; ?>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/assets/img/logo.png" alt="Bakes Logo">
+            Bakes <span>Admin</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="dashboard.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="mana_orders.php"><i class="fa-solid fa-cart-shopping"></i> Manage Orders</a></li>
+            <li><a href="mana_products.php"><i class="fa-solid fa-cookie-bite"></i> Manage Products</a></li>
+            <li><a href="mana_reviews.php"><i class="fa-solid fa-star"></i> Manage Reviews</a></li>
+            <li><a href="mana_users.php"><i class="fa-solid fa-users"></i> Manage Users</a></li>
+            <li><a href="mana_noti.php" class="active"><i class="fa-solid fa-bell"></i> Notifications</a></li>
+            <li style="margin-top: 20px;"><a href="/views/auth/logout.php" onclick="return confirm('Logout?');" style="color: #ff7675;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
     </div>
-    <?php include '../../includes/footer.php'; ?>
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div style="font-weight: bold; color: #555;">System Logs & Notifications</div>
+            <div style="color: #888;">Logged in as <strong>Admin</strong></div>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <h2>Manage Notifications</h2>
+                <?php if (empty($notifications)): ?>
+                    <div class="empty">No notifications found in the system.</div>
+                <?php else: ?>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">ID</th>
+                            <th style="width: 120px;">Category</th>
+                            <th>Involved Parties</th>
+                            <th>Reference</th>
+                            <th>Message</th>
+                            <th style="width: 80px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($notifications as $noti): ?>
+                        <tr>
+                            <td>#<?php echo $noti['id']; ?></td>
+                            <td>
+                                <?php 
+                                    $class = 'noti-auth';
+                                    if(strpos($noti['type'], 'order') !== false) $class = 'noti-order';
+                                    if(strpos($noti['type'], 'admin') !== false) $class = 'noti-admin';
+                                    if(strpos($noti['type'], 'review') !== false) $class = 'noti-review';
+                                ?>
+                                <span class="badge <?php echo $class; ?>">
+                                    <?php echo strtoupper(str_replace('_', ' ', $noti['type'])); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-weight: bold;"><?php echo $noti['user_name'] ? htmlspecialchars($noti['user_name']) : '-'; ?></div>
+                                <div style="color: #666; font-size: 0.9em;">To: <?php echo $noti['target_user_name'] ? htmlspecialchars($noti['target_user_name']) : 'System'; ?></div>
+                            </td>
+                            <td>
+                                <?php if($noti['product_name']): ?>
+                                    <div style="font-size: 0.9em;"><i class="fa-solid fa-cookie"></i> <?php echo htmlspecialchars($noti['product_name']); ?></div>
+                                <?php endif; ?>
+                                <?php if($noti['order_number']): ?>
+                                    <div style="font-size: 0.9em; font-weight: bold;"><i class="fa-solid fa-receipt"></i> Order #<?php echo $noti['order_number']; ?></div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php echo htmlspecialchars($noti['message']); ?>
+                                <span class="noti-date"><?php echo date('d/m/Y H:i', strtotime($noti['created_at'])); ?></span>
+                            </td>
+                            <td>
+                                <form method="post" style="display:inline;">
+                                    <input type="hidden" name="delete_id" value="<?php echo $noti['id']; ?>">
+                                    <button type="submit" class="btn-delete" onclick="return confirm('Delete this notification?');" title="Delete">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

@@ -10,6 +10,15 @@ if (!isset($_SESSION['user_id'])) {
 }
 $user_id = $_SESSION['user_id'];
 
+$user_profile = ['full_name' => '', 'email' => '', 'phone' => '', 'address' => ''];
+$up = $conn->prepare("SELECT full_name, email, phone, address FROM users WHERE id = ?");
+$up->bind_param("i", $user_id);
+$up->execute();
+$ur = $up->get_result()->fetch_assoc();
+if ($ur) {
+    $user_profile = $ur;
+}
+$up->close();
 
 // Handle remove action
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove'])) {
@@ -141,10 +150,21 @@ $result = $stmt->get_result();
                     <td colspan="2"><b id="grand-total"><?php echo number_format($grand_total); ?> VND</b></td>
                 </tr>
             </table>
+            <div style="margin: 20px 0 12px 0;">
+                <span style="font-weight:bold; margin-right:12px;">Payment:</span>
+                <label style="margin-right:16px;"><input type="radio" name="payment_method_select" value="momo" checked> MoMo</label>
+                <label><input type="radio" name="payment_method_select" value="cod"> Cash on delivery</label>
+            </div>
             <a href="#" onclick="submitCheckout(event)" class="checkout-btn" style="text-decoration:none; margin-left:20px;">Checkout</a>
         </form>
         <form id="checkout-form" method="post" action="pay.php" style="display:none;">
             <input type="hidden" name="checkout_items" id="checkout-items">
+            <input type="hidden" name="fullname" value="<?php echo htmlspecialchars($user_profile['full_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" name="email" value="<?php echo htmlspecialchars($user_profile['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" name="phone" value="<?php echo htmlspecialchars($user_profile['phone'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" name="address" value="<?php echo htmlspecialchars($user_profile['address'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" name="total_amount" id="checkout-total-amount" value="<?php echo isset($grand_total) ? (float) $grand_total : 0; ?>">
+            <input type="hidden" name="payment_method" id="payment-method-input" value="momo">
         </form>
         <?php else: ?>
             <div class="empty-cart">Your cart is empty.</div>
@@ -165,6 +185,13 @@ $result = $stmt->get_result();
             return;
         }
         document.getElementById('checkout-items').value = checked.join(',');
+        const pm = document.querySelector('input[name="payment_method_select"]:checked');
+        document.getElementById('payment-method-input').value = pm ? pm.value : 'cod';
+        const gt = document.getElementById('grand-total');
+        if (gt) {
+            const n = parseInt(gt.textContent.replace(/[^\d]/g, ''), 10) || 0;
+            document.getElementById('checkout-total-amount').value = n;
+        }
         document.getElementById('checkout-form').submit();
     }
 

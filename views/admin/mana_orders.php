@@ -1,25 +1,21 @@
 <?php
-
-
 session_start();
 include '../../connectdb.php';
 
-
-// Check if user is admin
+// Kiểm tra quyền Admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../../homepage.php");
+    header("Location: ../../index.php");
     exit;
 }
 
-
-// --- Handle order status update ---
+// --- Xử lý cập nhật trạng thái đơn hàng ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['status'])) {
     $oid = intval($_POST['order_id']);
     $status = $_POST['status'];
-    $allowed = ['pending', 'shipped', 'delivered', 'cancelled'];
+    // Cập nhật danh sách trạng thái mới chuẩn Database
+    $allowed = ['Pending', 'Paid', 'Processing', 'Ready for Delivery', 'Delivering', 'Completed', 'Cancelled'];
 
-
-    // Get current status and user_id before update
+    // Lấy trạng thái cũ và user_id trước khi update
     $cur = $conn->prepare("SELECT status, user_id FROM orders WHERE id = ?");
     $cur->bind_param("i", $oid);
     $cur->execute();
@@ -27,18 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
     $cur->fetch();
     $cur->close();
 
-
     if (in_array($status, $allowed)) {
         $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
         $stmt->bind_param("si", $status, $oid);
         $stmt->execute();
         $stmt->close();
 
-
-        // Add notification if status changes from pending to shipped
-        if ($old_status === 'pending' && $status === 'shipped') {
+        // Gửi thông báo nếu chuyển trạng thái sang Delivering (Đang giao)
+        if ($old_status !== 'Delivering' && $status === 'Delivering') {
             $type = 'order_status';
-            $message = 'Your order #' . $oid . ' has been shipped.';
+            $message = 'Your order #' . $oid . ' is now being delivered.';
             $created_at = date('Y-m-d H:i:s');
             $noti_stmt = $conn->prepare("INSERT INTO notifications (user_id, target_user_id, order_id, type, message, created_at) VALUES (?, ?, ?, ?, ?, ?)");
             $noti_stmt->bind_param("iiisss", $user_id, $user_id, $oid, $type, $message, $created_at);
@@ -46,13 +40,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['s
             $noti_stmt->close();
         }
     }
-    // Refresh to avoid resubmission
     header("Location: mana_orders.php");
     exit;
 }
 
-
-// Fetch all orders with customer info
+// Lấy danh sách đơn hàng
 $sql = "
     SELECT o.id, o.order_date, o.status, o.total_amount, u.full_name, u.email, u.phone, u.address
     FROM orders o
@@ -61,13 +53,12 @@ $sql = "
 ";
 $result = $conn->query($sql);
 
-
-// Fetch order items for a specific order if requested
+// Lấy chi tiết món ăn nếu có yêu cầu
 $order_items = [];
 if (isset($_GET['order_id'])) {
     $oid = intval($_GET['order_id']);
     $item_sql = "
-        SELECT oi.*, p.name as product_name, s.name as card_name
+        SELECT oi.*, p.name as product_name, s.name as service_name
         FROM order_items oi
         JOIN products p ON oi.product_id = p.id
         LEFT JOIN services s ON oi.service_id = s.id
@@ -83,121 +74,137 @@ if (isset($_GET['order_id'])) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - Manage Orders</title>
+    <title>Manage Orders | Bakes Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #f8f8f8; font-family: Arial, sans-serif; margin: 0; padding: 0; }
-        .admin-navbar {
-            background: #5C3A21;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            height: 60px;
-        }
-        .admin-navbar a {
-            color: #fff;
-            text-decoration: none;
-            padding: 0 32px;
-            font-size: 18px;
-            line-height: 60px;
-            display: block;
-            transition: background 0.2s;
-        }
-        .admin-navbar a:hover, .admin-navbar a.active {
-            background: #7A5230;
-        }
-        .container { max-width: 1100px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px #eee; padding: 32px; }
-        h2 { color: #7A5230; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
-        th { background: #faf6f8; color: #7A5230; }
-        .view-btn {
-            background: #7A5230; color: #fff; border: none; border-radius: 4px;
-            padding: 6px 14px; cursor: pointer; transition: background 0.2s;
-            text-decoration: none;
-        }
-        .view-btn:hover { background: #5C3A21; }
-        .status-select { padding: 4px 8px; border-radius: 4px; }
-        .order-items { margin-top: 30px; }
-        .order-items th { background: #f0f0f0; color: #333; }
-        .back-link { color: #7A5230; text-decoration: none; margin-bottom: 20px; display: inline-block; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR DỌC */
+        .sidebar { width: 260px; background: #343a40; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-brand { padding: 25px 20px; font-size: 1.6em; font-weight: bold; text-align: center; border-bottom: 1px solid #4f5962; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .sidebar-brand img { width: 38px; height: 38px; object-fit: contain; display: block; }
+        .sidebar-brand span { color: #b97a56; }
+        .nav-menu { list-style: none; padding: 0; margin: 15px 0; flex: 1; overflow-y: auto; }
+        .nav-menu li a { display: block; padding: 12px 20px; color: #c2c7d0; text-decoration: none; transition: 0.3s; }
+        .nav-menu li a i { margin-right: 12px; width: 20px; text-align: center; }
+        .nav-menu li a:hover, .nav-menu li a.active { background: #494e53; color: #fff; border-left: 4px solid #b97a56; }
+        
+        /* MAIN WRAPPER */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-header { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .content { padding: 25px; overflow-y: auto; flex: 1; }
+
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 25px; border-top: 4px solid #b97a56; }
+        h2 { color: #333; margin-top: 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 0.95em; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f9f9f9; color: #555; font-weight: bold; }
+        
+        .status-select { padding: 6px; border-radius: 4px; border: 1px solid #ddd; width: 100%; cursor: pointer; }
+        .view-btn { background: #b97a56; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; text-decoration: none; font-size: 0.9em; }
+        .view-btn:hover { background: #9c6343; }
+        .back-link { color: #b97a56; text-decoration: none; font-weight: bold; margin-bottom: 15px; display: inline-block; }
     </style>
 </head>
 <body>
-    <nav class="admin-navbar">
-        <a href="dashboard.php">Dashboard</a>
-        <a href="mana_orders.php"  class="active">Manage Orders</a>
-        <a href="mana_products.php">Manage Products</a>
-        <a href="mana_reviews.php">Manage Reviews</a>
-        <a href="mana_users.php">Manage Users</a>
-        <a href="mana_noti.php">Manage Notifications</a>
-        <a href="/views/auth/logout.php" style="margin-left:auto;" onclick="return confirm('Are you sure you want to logout?');">Logout</a>
-    </nav>
-    <div class="container">
-        <h2>Order Management</h2>
-        <?php if (isset($_GET['order_id'])): ?>
-            <a href="mana_orders.php" class="back-link">&larr; Back to all orders</a>
-            <h3>Order #<?php echo intval($_GET['order_id']); ?> Details</h3>
-            <table class="order-items">
-                <tr>
-                    <th>Product</th>
-                    <th>Card</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Subtotal</th>
-                </tr>
-                <?php foreach ($order_items as $item): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($item['product_name']); ?></td>
-                    <td><?php echo $item['card_name'] ? htmlspecialchars($item['card_name']) : '<span style="color:#888;">None</span>'; ?></td>
-                    <td><?php echo $item['quantity']; ?></td>
-                    <td><?php echo number_format($item['price']); ?> VND</td>
-                    <td><?php echo number_format($item['price'] * $item['quantity']); ?> VND</td>
-                </tr>
-                <?php endforeach; ?>
-            </table>
-        <?php else: ?>
-            <table>
-                <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                    <th>Action</th>
-                </tr>
-                <?php while ($row = $result->fetch_assoc()): ?>
-                <tr>
-                    <td><?php echo $row['id']; ?></td>
-                    <td><?php echo htmlspecialchars($row['full_name']); ?></td>
-                    <td><?php echo htmlspecialchars($row['email']); ?></td>
-                    <td><?php echo htmlspecialchars($row['phone']); ?></td>
-                    <td><?php echo htmlspecialchars($row['address']); ?></td>
-                    <td><?php echo number_format($row['total_amount']); ?> VND</td>
-                    <td>
-                        <form method="post" action="" style="margin:0;">
-                            <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
-                            <select name="status" class="status-select"
-                                onchange="this.form.submit()"
-                                <?php if($row['status']=='delivered' || $row['status']=='cancelled') echo 'disabled'; ?>>
-                                <option value="pending" <?php if($row['status']=='pending') echo 'selected'; ?>>Pending</option>
-                                <option value="shipped" <?php if($row['status']=='shipped') echo 'selected'; ?>>Shipped</option>
-                                <option value="delivered" <?php if($row['status']=='delivered') echo 'selected'; ?>>Delivered</option>
-                                <option value="cancelled" <?php if($row['status']=='cancelled') echo 'selected'; ?>>Cancelled</option>
-                            </select>
-                        </form>
-                    </td>
-                    <td><?php echo $row['order_date']; ?></td>
-                    <td>
-                        <a href="mana_orders.php?order_id=<?php echo $row['id']; ?>" class="view-btn">View</a>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </table>
-        <?php endif; ?>
+    <div class="sidebar">
+        <div class="sidebar-brand">
+            <img src="/assets/img/logo.png" alt="Bakes Logo">
+            Bakes <span>Admin</span>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="dashboard.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+            <li><a href="mana_orders.php" class="active"><i class="fa-solid fa-cart-shopping"></i> Manage Orders</a></li>
+            <li><a href="mana_products.php"><i class="fa-solid fa-cookie-bite"></i> Manage Products</a></li>
+            <li><a href="mana_reviews.php"><i class="fa-solid fa-star"></i> Manage Reviews</a></li>
+            <li><a href="mana_users.php"><i class="fa-solid fa-users"></i> Manage Users</a></li>
+            <li><a href="mana_noti.php"><i class="fa-solid fa-bell"></i> Notifications</a></li>
+            <li style="margin-top: 20px;"><a href="/views/auth/logout.php" onclick="return confirm('Logout?');" style="color: #ff7675;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="top-header">
+            <div style="font-weight: bold; color: #555;">Order Management</div>
+            <div style="color: #888;">Logged in as <strong>Admin</strong></div>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <?php if (isset($_GET['order_id'])): ?>
+                    <a href="mana_orders.php" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to all orders</a>
+                    <h2>Details for Order #<?php echo intval($_GET['order_id']); ?></h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Topping/Card</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($order_items as $item): ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($item['product_name']); ?></strong></td>
+                                <td><?php echo $item['service_name'] ? htmlspecialchars($item['service_name']) : '<span style="color:#ccc;">None</span>'; ?></td>
+                                <td><?php echo $item['quantity']; ?></td>
+                                <td><?php echo number_format($item['price']); ?> VND</td>
+                                <td><?php echo number_format($item['price'] * $item['quantity']); ?> VND</td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                <?php else: ?>
+                    <h2>All Customer Orders</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while ($row = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td>#<?php echo $row['id']; ?></td>
+                                <td>
+                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong><br>
+                                    <small style="color:#888;"><?php echo htmlspecialchars($row['phone']); ?></small>
+                                </td>
+                                <td><strong><?php echo number_format($row['total_amount']); ?> VND</strong></td>
+                                <td>
+                                    <form method="post" action="" style="margin:0;">
+                                        <input type="hidden" name="order_id" value="<?php echo $row['id']; ?>">
+                                        <select name="status" class="status-select" onchange="this.form.submit()" 
+                                            <?php if($row['status']=='Completed' || $row['status']=='Cancelled') echo 'disabled'; ?>>
+                                            <option value="Pending" <?php if($row['status']=='Pending') echo 'selected'; ?>>Pending</option>
+                                            <option value="Paid" <?php if($row['status']=='Paid') echo 'selected'; ?>>Paid</option>
+                                            <option value="Processing" <?php if($row['status']=='Processing') echo 'selected'; ?>>Processing</option>
+                                            <option value="Ready for Delivery" <?php if($row['status']=='Ready for Delivery') echo 'selected'; ?>>Ready for Delivery</option>
+                                            <option value="Delivering" <?php if($row['status']=='Delivering') echo 'selected'; ?>>Delivering</option>
+                                            <option value="Completed" <?php if($row['status']=='Completed') echo 'selected'; ?>>Completed</option>
+                                            <option value="Cancelled" <?php if($row['status']=='Cancelled') echo 'selected'; ?>>Cancelled</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td><small><?php echo date('d/m/Y H:i', strtotime($row['order_date'])); ?></small></td>
+                                <td>
+                                    <a href="mana_orders.php?order_id=<?php echo $row['id']; ?>" class="view-btn"><i class="fa-solid fa-eye"></i> View</a>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 </body>
 </html>

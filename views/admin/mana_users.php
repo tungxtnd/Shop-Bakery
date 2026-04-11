@@ -7,7 +7,7 @@ include '../../connectdb.php';
 
 // Check if admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../../homepage.php");
+    header("Location: ../../index.php");
     exit;
 }
 
@@ -84,11 +84,27 @@ while ($row = $result->fetch_assoc()) {
             display: flex;
             align-items: center;
             height: 60px;
+            gap: 10px;
+        }
+        .admin-navbar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0 24px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .admin-navbar .brand img {
+            width: 38px;
+            height: 38px;
+            object-fit: contain;
+            display: block;
         }
         .admin-navbar a {
             color: #fff;
             text-decoration: none;
-            padding: 0 32px;
+            padding: 0 24px;
             font-size: 18px;
             line-height: 60px;
             display: block;
@@ -120,6 +136,10 @@ while ($row = $result->fetch_assoc()) {
 </head>
 <body>
     <nav class="admin-navbar">
+        <div class="brand">
+            <img src="/assets/img/logo.png" alt="Bakes Logo">
+            <span>Bakes <strong>Admin</strong></span>
+        </div>
         <a href="dashboard.php">Dashboard</a>
         <a href="mana_orders.php">Manage Orders</a>
         <a href="mana_products.php">Manage Products</a>

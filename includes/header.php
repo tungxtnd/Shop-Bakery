@@ -5,7 +5,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Flower Shop</title>
+    <title>Bakery Shop</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
@@ -269,10 +269,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-        <div class="header-main <?php echo ($currentPage == 'homepage.php') ? 'header-transparent' : ''; ?>">
+        <div class="header-main <?php echo ($currentPage == 'index.php') ? 'header-transparent' : ''; ?>">
         <div class="header-left">
             <div class="logo">
-                <a href="/homepage.php" style="background:none; border:none; display:inline-block;">
+                <a href="/index.php" style="background:none; border:none; display:inline-block;">
                     <div class="logo-img" style="background:none; border:none;">
                         <img src="/assets/img/logo.png" alt="Blossom Logo" style="width:60px; height:60px; object-fit:contain;">
                     </div>
@@ -283,7 +283,7 @@
                     <a href="/shop.php">BAKERY</a>
                 </div>
                 <div class="nav-item">
-                    <a href="<?php echo ($currentPage == 'homepage.php') ? '#collection' : '/views/customer/collection.php'; ?>">
+                    <a href="<?php echo ($currentPage == 'index.php') ? '#collection' : '/views/customer/collection.php'; ?>">
                         COLLECTION
                     </a>
                     <div class="dropdown">
