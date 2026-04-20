@@ -4,7 +4,7 @@ include '../../connectdb.php';
 
 // Kiểm tra quyền Admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../../index.php");
+    header("Location: ../../homepage.php");
     exit;
 }
 
@@ -81,8 +81,7 @@ if (isset($_GET['order_id'])) {
         
         /* SIDEBAR DỌC */
         .sidebar { width: 260px; background: #343a40; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-brand { padding: 25px 20px; font-size: 1.6em; font-weight: bold; text-align: center; border-bottom: 1px solid #4f5962; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .sidebar-brand img { width: 38px; height: 38px; object-fit: contain; display: block; }
+        .sidebar-brand { padding: 25px 20px; font-size: 1.6em; font-weight: bold; text-align: center; border-bottom: 1px solid #4f5962; }
         .sidebar-brand span { color: #b97a56; }
         .nav-menu { list-style: none; padding: 0; margin: 15px 0; flex: 1; overflow-y: auto; }
         .nav-menu li a { display: block; padding: 12px 20px; color: #c2c7d0; text-decoration: none; transition: 0.3s; }
@@ -109,10 +108,7 @@ if (isset($_GET['order_id'])) {
 </head>
 <body>
     <div class="sidebar">
-        <div class="sidebar-brand">
-            <img src="/assets/img/logo.png" alt="Bakes Logo">
-            Bakes <span>Admin</span>
-        </div>
+        <div class="sidebar-brand"><i class="fa-solid fa-cake-candles"></i> Bakes <span>Admin</span></div>
         <ul class="nav-menu">
             <li><a href="dashboard.php"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
             <li><a href="mana_orders.php" class="active"><i class="fa-solid fa-cart-shopping"></i> Manage Orders</a></li>

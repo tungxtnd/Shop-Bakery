@@ -2,7 +2,6 @@
 session_start();
 include 'connectdb.php';
 
-
 // Handle search and filter
 $where = "WHERE status = 1 AND stock > 0 AND collection_id != 6";
 $params = [];
@@ -29,7 +28,6 @@ $page = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']
 if ($page < 1) $page = 1;
 $offset = ($page - 1) * $per_page;
 
-
 $sql = "SELECT id, name, image, price, description FROM products $where ORDER BY created_at DESC LIMIT $per_page OFFSET $offset";
 $stmt = $conn->prepare($sql);
 
@@ -40,12 +38,13 @@ if ($params) {
 }
 $stmt->execute();
 $result = $stmt->get_result();
+
 $collections = [];
 $col_result = $conn->query("SELECT id, name FROM collections");
 if ($col_result && $col_result->num_rows > 0) {
-     while ($row = $col_result->fetch_assoc()) {
-          $collections[] = $row;
-     }
+    while ($row = $col_result->fetch_assoc()) {
+        $collections[] = $row;
+    }
 }
 
 // Count total products for pagination
@@ -67,14 +66,14 @@ $total_pages = ceil($total_products / $per_page);
     <title>Shop - All Products</title>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        body {
-            background: #fff;
+        body { 
+            background: #fff; 
             font-family: 'Times New Roman', serif;
         }
-        .shop-main {
-            display: flex;
-            width: 100%;
-            margin: 0 0 30px 0;
+        .shop-main { 
+            display: flex; 
+            width: 100%; 
+            margin: 0 0 30px 0; 
             background: #fff;
         }
         .sidebar {
@@ -87,8 +86,8 @@ $total_pages = ceil($total_products / $per_page);
             height: fit-content;
             border: 1px solid #ddd;
         }
-        .products-area {
-            flex: 1;
+        .products-area { 
+            flex: 1; 
         }
         .search-bar {
             width: 95%;
@@ -112,50 +111,49 @@ $total_pages = ceil($total_products / $per_page);
        
         .products-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 30px; 
             width: 100%;
         }
 
-
-       
+        
         .product-card {
-            background: transparent;
-            box-shadow: none;
-            padding: 0;
+            background: transparent; 
+            box-shadow: none; 
+            padding: 0; 
             width: 100%;
             box-sizing: border-box;
             text-align: center;
             height: 100%;
-            transition: transform 0.3s ease;
-        }
-        .product-card:hover {
-            box-shadow: none;
-            transform: translateY(-8px);
+            transition: transform 0.3s ease; 
         }
 
+        .product-card:hover { 
+            box-shadow: none; 
+            transform: translateY(-8px); 
+        }
 
-        .product-card img {
-            width: 100%;
-            height: 280px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 15px;
+        .product-card img { 
+            width: 100%; 
+            height: 280px; 
+            object-fit: cover; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
         }
-        .product-card h3 {
-            margin: 12px 0 8px 0;
-            font-size: 20px;
-            color: #840000;
+        .product-card h3 { 
+            margin: 12px 0 8px 0; 
+            font-size: 20px; 
+            color: #840000; 
         }
-        .product-card p {
-            color: #840000;
-            font-size: 18px;
-            margin: 0 0 10px 0;
+        .product-card p { 
+            color: #840000; 
+            font-size: 18px; 
+            margin: 0 0 10px 0; 
         }
-        .product-card .desc {
-            color: #666;
-            font-size: 14px;
-            min-height: 40px;
+        .product-card .desc { 
+            color: #666; 
+            font-size: 14px; 
+            min-height: 40px; 
         }
         .product-card a {
             display: inline-block;
@@ -167,8 +165,8 @@ $total_pages = ceil($total_products / $per_page);
             text-decoration: none;
             transition: background 0.2s;
         }
-        .product-card a:hover {
-            background: #840000;
+        .product-card a:hover { 
+            background: #840000; 
         }
         button[type="submit"] {
             background: #cb5d00;
@@ -205,12 +203,13 @@ $total_pages = ceil($total_products / $per_page);
     <?php include 'includes/header.php'; ?>
     <h1 style="text-align:center; margin: 40px 0 20px 0;">ALL BOUQUETS</h1>
     <p style="text-align:center;">We design bouquets the French way, using seasons and our Parisian roots as inspiration.</p>
-    <form class="search-bar" method="get" action="/shop-bakery-management/shop.php">
+    <form class="search-bar" method="get" action="shop.php">
         <input type="text" name="search" placeholder="Search products..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
-     <button buttontype="submit"><a href="/.php" style="color:#cb5d00; text-align:center;">Reset</a></button>
+        <button type="submit">Search</button>
+        <a href="shop.php" style="color:#cb5d00; text-align:center; padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; text-decoration: none;">Reset</a>
     </form>
     <div class="shop-main">
-        <form class="sidebar" method="get" action="/shop-bakery-management/shop.php">
+        <form class="sidebar" method="get" action="shop.php">
             <h3 style="margin-top:0;">Filter by Price</h3>
             <input type="hidden" name="search" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
             <input type="hidden" name="collection_id" value="<?php echo isset($_GET['collection_id']) ? intval($_GET['collection_id']) : ''; ?>">
@@ -236,7 +235,7 @@ $total_pages = ceil($total_products / $per_page);
             <button type="submit" style="width: auto;">Apply Filter</button>
         </form>
         <div class="products-area">
-             <div class="products-grid">
+            <div class="products-grid">
                 <?php if ($result && $result->num_rows > 0): ?>
                     <?php while($row = $result->fetch_assoc()): ?>
                         <a href="/product_details.php?id=<?php echo $row['id']; ?>" class="product-card-link" style="text-decoration:none;color:inherit;">
@@ -266,11 +265,9 @@ $total_pages = ceil($total_products / $per_page);
             <a href="<?php echo $url; ?>" style="padding:8px 14px;border-radius:4px;<?php if($p == $page) echo 'background:#cb5d00;color:#fff;'; else echo 'background:#fff;color:#e75480;border:1px solid #840000;'; ?>">
                 <?php echo $p; ?>
             </a>
-         <?php endfor; ?>
+        <?php endfor; ?>
     </div>
     <?php endif; ?>
     <?php include 'includes/footer.php'; ?>
 </body>
 </html>
-
-

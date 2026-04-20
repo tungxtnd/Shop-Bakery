@@ -2,7 +2,7 @@
 session_start();
 // Kiểm tra quyền Admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: ../../index.php");
+    header("Location: ../../homepage.php");
     exit;
 }
 include '../../connectdb.php';
@@ -87,8 +87,7 @@ while ($row = $rating_result->fetch_assoc()) {
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         .sidebar { width: 260px; background: #343a40; color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-brand { padding: 25px 20px; font-size: 1.6em; font-weight: bold; text-align: center; border-bottom: 1px solid #4f5962; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .sidebar-brand img { width: 38px; height: 38px; object-fit: contain; display: block; }
+        .sidebar-brand { padding: 25px 20px; font-size: 1.6em; font-weight: bold; text-align: center; border-bottom: 1px solid #4f5962; }
         .sidebar-brand span { color: #b97a56; }
         .nav-menu { list-style: none; padding: 0; margin: 15px 0; flex: 1; overflow-y: auto; }
         .nav-menu li a { display: block; padding: 12px 20px; color: #c2c7d0; text-decoration: none; transition: 0.3s; }
@@ -106,12 +105,9 @@ while ($row = $rating_result->fetch_assoc()) {
         .chart-card h3 { margin-top: 0; color: #555; border-bottom: 1px solid #eee; padding-bottom: 10px; font-size: 1.1em; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
-<body>      
+<body>
     <div class="sidebar">
-        <div class="sidebar-brand">
-            <img src="/assets/img/logo.png" alt="Bakes Logo">
-            Bakes <span>Admin</span>
-        </div>
+        <div class="sidebar-brand"><i class="fa-solid fa-cake-candles"></i> Bakes <span>Admin</span></div>
         <ul class="nav-menu">
             <li><a href="dashboard.php" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
             <li><a href="mana_orders.php"><i class="fa-solid fa-cart-shopping"></i> Manage Orders</a></li>
@@ -180,7 +176,7 @@ while ($row = $rating_result->fetch_assoc()) {
         // Order Status
         new Chart(document.getElementById('orderStatusChart'), {
             type: 'pie',
-            data: { labels: <?php echo json_encode($status_labels); ?>, datasets: [{ data: <?php echo json_encode($status_counts); ?>, backgroundColor: ['#81E7AF', '#F38C79', '#5BBCFF', '#FB9EC6', '#bdbdbd'] }] }
+            data: { labels: <?php echo json_encode($status_labels); ?>, datasets: [{ data: <?php echo json_encode($status_counts); ?>, backgroundColor: ['#FFC107', '#28A745', '#007BFF', '#6F42C1', '#FD7E14', '#198754', '#DC3545'] }] }
         });
 
         // Average Rating

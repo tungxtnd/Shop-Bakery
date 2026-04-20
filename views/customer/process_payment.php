@@ -3,7 +3,7 @@
 ob_start();
 session_start();
 include '../../includes/header.php';
-include '../../connectdb.php';	
+include '../../connectdb.php';
 $order_id = $_GET['order_id'] ?? 0;
 $order_success = false;
 $account_created = false;
@@ -123,200 +123,214 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['fullname'], $_POST['e
     }
 }
 // --- BẮT ĐẦU: TÍCH HỢP MOMO API ---
-    $payment_method = $_POST['payment_method'] ?? 'cod';
-    
-    if (isset($order_success) && $order_success == true && $payment_method === 'momo') {
-        $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
+$payment_method = $_POST['payment_method'] ?? 'cod';
 
-        // THAY BẰNG KEY TRONG TÀI KHOẢN DEV MOMO CỦA BẠN
-        $partnerCode = "MOMOBKUN20180529"; 
-        $accessKey = "klm05TvNBzhg7h7j";
-        $secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
-        
-        $orderInfo = "Thanh toán đơn hàng Bakes #" . $order_id;
-        $amount = (string)$total_amount;
-        $orderId_momo = $order_id . "_" . time(); // Nối thêm time() để mã đơn MoMo không bị trùng
-        
-        // CHÚ Ý: Thay dải link ngrok của bạn vào đây
-       
-        
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $baseUrl = $scheme . '://' . $host;
-        $redirectUrl = $baseUrl . '/views/customer/process_payment.php?momo_return=1';
-        $ipnUrl = $baseUrl . '/views/customer/momo_ipn.php'; 
-        
-        $extraData = "";
-        $requestId = time() . "";
-        $requestType = "captureWallet";
-        
-        $rawHash = "accessKey=".$accessKey."&amount=".$amount."&extraData=".$extraData."&ipnUrl=".$ipnUrl."&orderId=".$orderId_momo."&orderInfo=".$orderInfo."&partnerCode=".$partnerCode."&redirectUrl=".$redirectUrl."&requestId=".$requestId."&requestType=".$requestType;
-        $signature = hash_hmac("sha256", $rawHash, $secretKey);
-        
-        $data = array(
-            'partnerCode' => $partnerCode,
-            'partnerName' => "Bakes Bakery",
-            "storeId" => "BakesStore",
-            'requestId' => $requestId,
-            'amount' => $amount,
-            'orderId' => $orderId_momo,
-            'orderInfo' => $orderInfo,
-            'redirectUrl' => $redirectUrl,
-            'ipnUrl' => $ipnUrl,
-            'lang' => 'vi',
-            'extraData' => $extraData,
-            'requestType' => $requestType,
-            'signature' => $signature
-        );
+if (isset($order_success) && $order_success == true && $payment_method === 'momo') {
+    $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
 
-        // Dùng cURL gửi request lên MoMo
-        $ch = curl_init($endpoint);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen(json_encode($data))));
-        $result = curl_exec($ch);
-        curl_close($ch);
-        
-        $jsonResult = json_decode($result, true);
-        
-        // Chuyển hướng người dùng sang trang quét mã QR của MoMo
-        if (isset($jsonResult['payUrl'])) {
+    // THAY BẰNG KEY TRONG TÀI KHOẢN DEV MOMO CỦA BẠN
+    $partnerCode = "MOMOBKUN20180529";
+    $accessKey = "klm05TvNBzhg7h7j";
+    $secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
+
+    $orderInfo = "Payment for Bakes Order #" . $order_id;
+    $amount = (string) $total_amount;
+    $orderId_momo = $order_id . "_" . time(); // Nối thêm time() để mã đơn MoMo không bị trùng
+
+    // CHÚ Ý: Thay dải link ngrok của bạn vào đây
+
+
+    // Link trả về giao diện sau khi khách quét QR xong
+    $redirectUrl = "http://shop-bakery-management.test/views/customer/process_payment.php?momo_return=1";
+    // Link chạy ngầm để MoMo báo server cập nhật database
+    $ipnUrl = "http://shop-bakery-management.test/views/customer/momo_ipn.php";
+
+    $extraData = "";
+    $requestId = time() . "";
+    $requestType = "captureWallet";
+
+    $rawHash = "accessKey=" . $accessKey . "&amount=" . $amount . "&extraData=" . $extraData . "&ipnUrl=" . $ipnUrl . "&orderId=" . $orderId_momo . "&orderInfo=" . $orderInfo . "&partnerCode=" . $partnerCode . "&redirectUrl=" . $redirectUrl . "&requestId=" . $requestId . "&requestType=" . $requestType;
+    $signature = hash_hmac("sha256", $rawHash, $secretKey);
+
+    $data = array(
+        'partnerCode' => $partnerCode,
+        'partnerName' => "Bakes Bakery",
+        "storeId" => "BakesStore",
+        'requestId' => $requestId,
+        'amount' => $amount,
+        'orderId' => $orderId_momo,
+        'orderInfo' => $orderInfo,
+        'redirectUrl' => $redirectUrl,
+        'ipnUrl' => $ipnUrl,
+        'lang' => 'en',
+        'extraData' => $extraData,
+        'requestType' => $requestType,
+        'signature' => $signature
+    );
+
+    // Dùng cURL gửi request lên MoMo
+    $ch = curl_init($endpoint);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen(json_encode($data))));
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    $jsonResult = json_decode($result, true);
+
+    // Chuyển hướng người dùng sang trang quét mã QR của MoMo
+    if (isset($jsonResult['payUrl'])) {
+        // Debug: Hiện thông tin trước khi chuyển hướng
+        echo "<script>alert('Redirecting to MoMo with lang: " . $data['lang'] . " and description: " . $orderInfo . "'); window.location.href='" . $jsonResult['payUrl'] . "';</script>"; exit;
             header('Location: ' . $jsonResult['payUrl']);
-            exit;
-        } else {
-            // Hiện thông báo lỗi nếu MoMo từ chối tạo mã (rất quan trọng để biết tại sao lỗi)
-            $error_msg = $jsonResult['message'] ?? 'Lỗi không xác định từ MoMo';
-            echo "<script>alert('Không thể tạo mã QR MoMo: " . $error_msg . "'); window.history.back();</script>";
-            exit;
-        }
+        exit;
+    } else {
+        // Hiện thông báo lỗi nếu MoMo từ chối tạo mã (rất quan trọng để biết tại sao lỗi)
+        $error_msg = $jsonResult['message'] ?? 'Lỗi không xác định từ MoMo';
+        echo "<script>alert('Không thể tạo mã QR MoMo: " . $error_msg . "'); window.history.back();</script>";
+        exit;
     }
-    // --- KẾT THÚC: TÍCH HỢP MOMO API ---
+}
+// --- KẾT THÚC: TÍCH HỢP MOMO API ---
 ?>
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Payment Processed</title>
-        <link rel="stylesheet" href="../../css/style.css">
-        <link rel="stylesheet" href="../../css/font-awesome.min.css">
-    </head>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Processed</title>
+    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/font-awesome.min.css">
+</head>
 <style>
-.processpay-container {
-    max-width: 480px;
-    margin: 60px auto 60px auto;
-    background: #fff;
-    border-radius: 16px;
-    border: 1px solid #f0e0de;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-    padding: 48px 24px 36px 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-.processpay-icon {
-    font-size: 3.2rem;
-    color: #2ecc40;
-    margin-bottom: 18px;
-}
-.processpay-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #222;
-    margin-bottom: 10px;
-    text-align: center;
-}
-.processpay-desc {
-    font-size: 1.08rem;
-    color: #444;
-    margin-bottom: 24px;
-    text-align: center;
-}
-.processpay-orderid {
-    font-size: 1.05rem;
-    color: #d17c7c;
-    font-weight: 500;
-    margin-bottom: 18px;
-}
-.processpay-btns {
-    display: flex;
-    gap: 18px;
-    margin-top: 12px;
-    width: 100%;
-    justify-content: center;
-}
-.processpay-btn {
-    background: #d17c7c;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 28px;
-    font-size: 1.08rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-    text-decoration: none;
-    display: inline-block;
-}
-.processpay-btn:hover {
-    opacity: 0.85;
-}
-.order-toast {
-    position: fixed;
-    left: 24px;
-    bottom: 32px;
-    background: #2ecc40;
-    color: #fff;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-size: 1.1rem;
-    box-shadow: 0 2px 12px #aaa;
-    z-index: 9999;
-    opacity: 1;
-    transition: opacity 0.5s;
-}
+    .processpay-container {
+        max-width: 480px;
+        margin: 60px auto 60px auto;
+        background: #fff;
+        border-radius: 16px;
+        border: 1px solid #f0e0de;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+        padding: 48px 24px 36px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    .processpay-icon {
+        font-size: 3.2rem;
+        color: #2ecc40;
+        margin-bottom: 18px;
+    }
+
+    .processpay-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #222;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .processpay-desc {
+        font-size: 1.08rem;
+        color: #444;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+
+    .processpay-orderid {
+        font-size: 1.05rem;
+        color: #d17c7c;
+        font-weight: 500;
+        margin-bottom: 18px;
+    }
+
+    .processpay-btns {
+        display: flex;
+        gap: 18px;
+        margin-top: 12px;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .processpay-btn {
+        background: #d17c7c;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 28px;
+        font-size: 1.08rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .processpay-btn:hover {
+        opacity: 0.85;
+    }
+
+    .order-toast {
+        position: fixed;
+        left: 24px;
+        bottom: 32px;
+        background: #2ecc40;
+        color: #fff;
+        padding: 16px 32px;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 12px #aaa;
+        z-index: 9999;
+        opacity: 1;
+        transition: opacity 0.5s;
+    }
 </style>
+
 <body>
-<?php if ($account_created): ?>
+    <?php if ($account_created): ?>
         <script>
             alert("<?php echo addslashes($account_message); ?>");
         </script>
     <?php endif; ?>
 
-<?php if (!empty($order_success)): ?>
-    <div id="order-toast" class="order-toast">Your order has been placed and is pending confirmation.</div>
-    <script>
-        setTimeout(function() {
-            document.getElementById('order-toast').style.opacity = '0';
-        }, 2000);
-        setTimeout(function() {
-            document.getElementById('order-toast').style.display = 'none';
-        }, 2500);
-    </script>
-<?php endif; ?>
-
-<div class="processpay-container">
-    <div class="processpay-icon">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="24" r="24" fill="#eafbe7"/>
-            <path d="M15 25.5L21 31.5L33 19.5" stroke="#2ecc40" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-    </div>
-    <div class="processpay-title">Your payment was successful!</div>
-    <div class="processpay-desc">
-        Thank you for ordering at Blossom Flower Shop.<br>
-        Your order will be processed and delivered as soon as possible.
-    </div>
-    <?php if ($order_id): ?>
-        <div class="processpay-orderid">Order ID: #<?php echo htmlspecialchars($order_id); ?></div>
+    <?php if (!empty($order_success)): ?>
+        <div id="order-toast" class="order-toast">Your order has been placed and is pending confirmation.</div>
+        <script>
+            setTimeout(function () {
+                document.getElementById('order-toast').style.opacity = '0';
+            }, 2000);
+            setTimeout(function () {
+                document.getElementById('order-toast').style.display = 'none';
+            }, 2500);
+        </script>
     <?php endif; ?>
-    <div class="processpay-btns">
-        <a href="orderhistory.php" class="processpay-btn">View your orders</a>
-        <a href="../../homepage.php" class="processpay-btn" style="background:#fff;color:#d17c7c;border:1.5px solid #d17c7c;">Back to homepage</a>
+
+    <div class="processpay-container">
+        <div class="processpay-icon">
+            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+                <circle cx="24" cy="24" r="24" fill="#eafbe7" />
+                <path d="M15 25.5L21 31.5L33 19.5" stroke="#2ecc40" stroke-width="3" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+        </div>
+        <div class="processpay-title">Your payment was successful!</div>
+        <div class="processpay-desc">
+            Thank you for ordering at Blossom Flower Shop.<br>
+            Your order will be processed and delivered as soon as possible.
+        </div>
+        <?php if ($order_id): ?>
+            <div class="processpay-orderid">Order ID: #<?php echo htmlspecialchars($order_id); ?></div>
+        <?php endif; ?>
+        <div class="processpay-btns">
+            <a href="orderhistory.php" class="processpay-btn">View your orders</a>
+            <a href="../../index.php" class="processpay-btn"
+                style="background:#fff;color:#d17c7c;border:1.5px solid #d17c7c;">Back to homepage</a>
+        </div>
     </div>
-</div>
 </body>
 <?php include '../../includes/footer.php'; ?>
+
 </html>
