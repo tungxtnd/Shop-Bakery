@@ -62,163 +62,225 @@ $result = $stmt->get_result();
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Your Cart</title>
     <style>
-        body { background: #f8f8f8; font-family: Arial, sans-serif; }
-        .cart-container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px #eee; padding: 32px; }
-        h2 { color: #e75480; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: center; border-bottom: 1px solid #eee; }
-        th { background: #faf6f8; color: #e75480; }
-        img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; }
+        body {
+            background: #f8f8f8;
+            font-family: Arial, sans-serif;
+        }
+
+        .cart-container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px #eee;
+            padding: 32px;
+        }
+
+        h2 {
+            color: #e75480;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #faf6f8;
+            color: #e75480;
+        }
+
+        img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
         .remove-btn {
-            background: #e75480; color: #fff; border: none; border-radius: 4px;
-            padding: 6px 14px; cursor: pointer; transition: background 0.2s;
+            background: #e75480;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 14px;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .remove-btn:hover { background: #d84372; }
+
+        .remove-btn:hover {
+            background: #d84372;
+        }
+
         .checkout-btn {
-            margin-top: 24px; background: #e75480; color: #fff; border: none; border-radius: 5px;
-                       padding: 14px 40px; font-size: 18px; cursor: pointer; transition: background 0.2s;
+            margin-top: 24px;
+            background: #e75480;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 14px 40px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-        .checkout-btn:hover { background: #d84372; }
-        .empty-cart { text-align: center; color: #888; margin: 40px 0; }
+
+        .checkout-btn:hover {
+            background: #d84372;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #888;
+            margin: 40px 0;
+        }
     </style>
 </head>
+
 <body>
     <?php include '../../includes/header.php'; ?>
     <div class="cart-container">
         <h2>Your Cart</h2>
         <?php if ($result && $result->num_rows > 0): ?>
-        <form method="post" action="">
-            <table>
-                <tr>
-                    <th><input type="checkbox" id="select-all"></th>
-                    <th>Product</th>
-                    <th>Card</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                    <th>Remove</th>
-                </tr>
-                <?php
-                $grand_total = 0;
-                while ($row = $result->fetch_assoc()):
-                    $product_total = $row['product_price'] * $row['quantity'];
-                    $card_total = $row['card_price'] ?? 0;
-                    $subtotal = $product_total + $card_total;
-                    $grand_total += $subtotal;
-                ?>
-                <tr>
-                    <td>
-                        <input type="checkbox" name="checkout_items[]" value="<?php echo $row['cart_id']; ?>" class="item-checkbox">
-                    </td>
-                    <td>
-                        <img src="/assets/img/<?php echo htmlspecialchars($row['product_image']); ?>" alt="">
-                        <div><?php echo htmlspecialchars($row['product_name']); ?></div>
-                                            </td>
-                    <td>
-                        <?php if ($row['card_name']): ?>
-                            <img src="/assets/img/<?php echo htmlspecialchars($row['card_image']); ?>" alt="" style="width:40px;height:40px;"><br>
-                            <?php echo htmlspecialchars($row['card_name']); ?><br>
-                            +<?php echo number_format($row['card_price']); ?> VND
-                            <span data-card-price="<?php echo $row['card_price']; ?>" style="display:none;"></span>
-                        <?php else: ?>
-                            <span style="color:#888;">None</span>
-                            <span data-card-price="0" style="display:none;"></span>
-                        <?php endif; ?>
-                    </td>
-                    <td>
-                        <?php echo number_format($row['product_price']); ?> VND
-                        <span data-product-price="<?php echo $row['product_price']; ?>" style="display:none;"></span>
-                        <?php if ($row['card_price']): ?><br>+<?php echo number_format($row['card_price']); ?> VND<?php endif; ?>
-                    </td>
-                    <td>
-                        <input type="number" name="quantities[<?php echo $row['cart_id']; ?>]" value="<?php echo $row['quantity']; ?>" min="1" style="width:60px;" onchange="this.form.submit();">
-                    </td>
-                    <td class="subtotal-cell">
-                        <?php echo number_format($subtotal); ?> VND
-                    </td>
-                    <td>
-                        <button type="submit" name="remove" value="<?php echo $row['cart_id']; ?>" class="remove-btn">Remove</button>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-                <tr>
-                                        <td colspan="4" style="text-align:right;"><b>Total:</b></td>
-                    <td colspan="2"><b id="grand-total"><?php echo number_format($grand_total); ?> VND</b></td>
-                </tr>
-            </table>
-            <div style="margin: 20px 0 12px 0;">
-                <span style="font-weight:bold; margin-right:12px;">Payment:</span>
-                <label style="margin-right:16px;"><input type="radio" name="payment_method_select" value="momo" checked> MoMo</label>
-                <label><input type="radio" name="payment_method_select" value="cod"> Cash on delivery</label>
-            </div>
-            <a href="#" onclick="submitCheckout(event)" class="checkout-btn" style="text-decoration:none; margin-left:20px;">Checkout</a>
-        </form>
-        <form id="checkout-form" method="post" action="pay.php" style="display:none;">
-            <input type="hidden" name="checkout_items" id="checkout-items">
-            <input type="hidden" name="fullname" value="<?php echo htmlspecialchars($user_profile['full_name'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-            <input type="hidden" name="email" value="<?php echo htmlspecialchars($user_profile['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-            <input type="hidden" name="phone" value="<?php echo htmlspecialchars($user_profile['phone'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-            <input type="hidden" name="address" value="<?php echo htmlspecialchars($user_profile['address'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
-            <input type="hidden" name="total_amount" id="checkout-total-amount" value="<?php echo isset($grand_total) ? (float) $grand_total : 0; ?>">
-            <input type="hidden" name="payment_method" id="payment-method-input" value="momo">
-        </form>
+            <form method="post" action="">
+                <table>
+                    <tr>
+                        <th><input type="checkbox" id="select-all"></th>
+                        <th>Product</th>
+                        <th>Card</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th>Remove</th>
+                    </tr>
+                    <?php
+                    $grand_total = 0;
+                    while ($row = $result->fetch_assoc()):
+                        $product_total = $row['product_price'] * $row['quantity'];
+                        $card_total = $row['card_price'] ?? 0;
+                        $subtotal = $product_total + $card_total;
+                        $grand_total += $subtotal;
+                        ?>
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="checkout_items[]" value="<?php echo $row['cart_id']; ?>"
+                                    class="item-checkbox">
+                            </td>
+                            <td>
+                                <img src="/assets/img/<?php echo htmlspecialchars($row['product_image']); ?>" alt="">
+                                <div>
+                                    <?php echo htmlspecialchars($row['product_name']); ?>
+                                </div>
+                            </td>
+                            <td>
+                                <?php if ($row['card_name']): ?>
+                                    <img src="/assets/img/<?php echo htmlspecialchars($row['card_image']); ?>" alt=""
+                                        style="width:40px;height:40px;"><br>
+                                    <?php echo htmlspecialchars($row['card_name']); ?><br>
+                                    +
+                                    <?php echo number_format($row['card_price']); ?> VND
+                                    <span data-card-price="<?php echo $row['card_price']; ?>" style="display:none;"></span>
+                                <?php else: ?>
+                                    <span style="color:#888;">None</span>
+                                    <span data-card-price="0" style="display:none;"></span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php echo number_format($row['product_price']); ?> VND
+                                <span data-product-price="<?php echo $row['product_price']; ?>" style="display:none;"></span>
+                                <?php if ($row['card_price']): ?><br>+
+                                    <?php echo number_format($row['card_price']); ?> VND
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <input type="number" name="quantities[<?php echo $row['cart_id']; ?>]"
+                                    value="<?php echo $row['quantity']; ?>" min="1" style="width:60px;"
+                                    onchange="this.form.submit();">
+                            </td>
+                            <td class="subtotal-cell">
+                                <?php echo number_format($subtotal); ?> VND
+                            </td>
+                            <td>
+                                <button type="submit" name="remove" value="<?php echo $row['cart_id']; ?>"
+                                    class="remove-btn">Remove</button>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                    <tr>
+                        <td colspan="4" style="text-align:right;"><b>Total:</b></td>
+                        <td colspan="2"><b id="grand-total">
+                                <?php echo number_format($grand_total); ?> VND
+                            </b></td>
+                    </tr>
+                </table>
+                <div style="margin: 20px 0 12px 0;">
+                    <span style="font-weight:bold; margin-right:12px;">Payment:</span>
+                    <label style="margin-right:16px;"><input type="radio" name="payment_method_select" value="momo" checked>
+                        MoMo</label>
+                    <label><input type="radio" name="payment_method_select" value="cod"> Cash on delivery</label>
+                </div>
+                <a href="#" onclick="submitCheckout(event)" class="checkout-btn"
+                    style="text-decoration:none; margin-left:20px;">Checkout</a>
+            </form>
+            <?php /* Form chỉ gửi danh sách item IDs. pay.php sẽ hiển thị form nhập thông tin giao hàng */ ?>
+            <form id="checkout-form" method="post" action="pay.php" style="display:none;">
+                <input type="hidden" name="checkout_items" id="checkout-items">
+            </form>
         <?php else: ?>
             <div class="empty-cart">Your cart is empty.</div>
         <?php endif; ?>
     </div>
     <?php include '../../includes/footer.php'; ?>
     <script>
-    document.getElementById('select-all').addEventListener('change', function() {
-        document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = this.checked);
-    });
-
-
-    function submitCheckout(e) {
-        e.preventDefault();
-        const checked = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
-        if (checked.length === 0) {
-            alert('Please select at least one product to checkout.');
-            return;
-        }
-        document.getElementById('checkout-items').value = checked.join(',');
-        const pm = document.querySelector('input[name="payment_method_select"]:checked');
-        document.getElementById('payment-method-input').value = pm ? pm.value : 'cod';
-        const gt = document.getElementById('grand-total');
-        if (gt) {
-            const n = parseInt(gt.textContent.replace(/[^\d]/g, ''), 10) || 0;
-            document.getElementById('checkout-total-amount').value = n;
-        }
-        document.getElementById('checkout-form').submit();
-    }
-
-
-    // --- Dynamic price update ---
-            document.querySelectorAll('input[type="number"][name^="quantities"]').forEach(function(input) {
-        input.addEventListener('input', function() {
-            const row = input.closest('tr');
-            const productPrice = parseInt(row.querySelector('[data-product-price]').getAttribute('data-product-price'));
-            const cardPrice = parseInt(row.querySelector('[data-card-price]') ? row.querySelector('[data-card-price]').getAttribute('data-card-price') : 0) || 0;
-            const quantity = parseInt(input.value) || 1;
-            const subtotal = (productPrice * quantity) + cardPrice;
-            row.querySelector('.subtotal-cell').textContent = subtotal.toLocaleString() + ' VND';
-
-
-            // Update grand total
-            let grandTotal = 0;
-            document.querySelectorAll('.subtotal-cell').forEach(function(cell) {
-                grandTotal += parseInt(cell.textContent.replace(/[^\d]/g, '')) || 0;
-            });
-            document.getElementById('grand-total').textContent = grandTotal.toLocaleString() + ' VND';
+        document.getElementById('select-all').addEventListener('change', function () {
+            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = this.checked);
         });
-    });
+
+
+        function submitCheckout(e) {
+            e.preventDefault();
+            const checked = Array.from(document.querySelectorAll('.item-checkbox:checked')).map(cb => cb.value);
+            if (checked.length === 0) {
+                alert('Please select at least one product to checkout.');
+                return;
+            }
+            // Gửi danh sách item IDs sang pay.php — pay.php sẽ hiển thị form xác nhận thông tin
+            document.getElementById('checkout-items').value = checked.join(',');
+            document.getElementById('checkout-form').submit();
+        }
+
+
+        // --- Dynamic price update ---
+        document.querySelectorAll('input[type="number"][name^="quantities"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                const row = input.closest('tr');
+                const productPrice = parseInt(row.querySelector('[data-product-price]').getAttribute('data-product-price'));
+                const cardPrice = parseInt(row.querySelector('[data-card-price]') ? row.querySelector('[data-card-price]').getAttribute('data-card-price') : 0) || 0;
+                const quantity = parseInt(input.value) || 1;
+                const subtotal = (productPrice * quantity) + cardPrice;
+                row.querySelector('.subtotal-cell').textContent = subtotal.toLocaleString() + ' VND';
+
+
+                // Update grand total
+                let grandTotal = 0;
+                document.querySelectorAll('.subtotal-cell').forEach(function (cell) {
+                    grandTotal += parseInt(cell.textContent.replace(/[^\d]/g, '')) || 0;
+                });
+                document.getElementById('grand-total').textContent = grandTotal.toLocaleString() + ' VND';
+            });
+        });
     </script>
 </body>
+
 </html>
-
-
-
-

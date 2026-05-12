@@ -181,9 +181,7 @@ if (isset($order_success) && $order_success == true && $payment_method === 'momo
 
     // Chuyển hướng người dùng sang trang quét mã QR của MoMo
     if (isset($jsonResult['payUrl'])) {
-        // Debug: Hiện thông tin trước khi chuyển hướng
-        echo "<script>alert('Redirecting to MoMo with lang: " . $data['lang'] . " and description: " . $orderInfo . "'); window.location.href='" . $jsonResult['payUrl'] . "';</script>"; exit;
-            header('Location: ' . $jsonResult['payUrl']);
+        header('Location: ' . $jsonResult['payUrl']);
         exit;
     } else {
         // Hiện thông báo lỗi nếu MoMo từ chối tạo mã (rất quan trọng để biết tại sao lỗi)
@@ -322,7 +320,9 @@ if (isset($order_success) && $order_success == true && $payment_method === 'momo
             Your order will be processed and delivered as soon as possible.
         </div>
         <?php if ($order_id): ?>
-            <div class="processpay-orderid">Order ID: #<?php echo htmlspecialchars($order_id); ?></div>
+            <div class="processpay-orderid">Order ID: #
+                <?php echo htmlspecialchars($order_id); ?>
+                </div>
         <?php endif; ?>
         <div class="processpay-btns">
             <a href="orderhistory.php" class="processpay-btn">View your orders</a>

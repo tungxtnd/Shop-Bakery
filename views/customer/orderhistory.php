@@ -7,20 +7,56 @@ $current_user_id = $_SESSION['user_id'] ?? 0;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cancel_order_id'])) {
     $cancel_order_id = intval($_POST['cancel_order_id']);
-    // Only allow cancelling own pending orders
-    $sql = "UPDATE orders SET status = 'Cancelled' WHERE id = $cancel_order_id AND user_id = $current_user_id AND status = 'Pending'";
-    $conn->query($sql);
 
-    // Add notification for cancelled order
-    $type = 'order_status';
-    $message = 'You have cancelled order #' . $cancel_order_id . '.';
-    $created_at = date('Y-m-d H:i:s');
-    $noti_stmt = $conn->prepare("INSERT INTO notifications (user_id, target_user_id, order_id, type, message, created_at) VALUES (?, ?, ?, ?, ?, ?)");
-    $noti_stmt->bind_param("iiisss", $current_user_id, $current_user_id, $cancel_order_id, $type, $message, $created_at);
-    $noti_stmt->execute();
-    $noti_stmt->close();
+    // Bước 1: Kiểm tra đơn hàng có tồn tại, thuộc user, đang Pending không
+    $chk = $conn->prepare(
+        "SELECT id, payment_method FROM orders WHERE id = ? AND user_id = ? AND status = 'Pending'"
+    );
+    $chk->bind_param("ii", $cancel_order_id, $current_user_id);
+    $chk->execute();
+    $order_info = $chk->get_result()->fetch_assoc();
+    $chk->close();
 
-    // Optional: reload to update the list
+    if ($order_info) {
+        // Bước 2: Hủy đơn
+        $upd = $conn->prepare(
+            "UPDATE orders SET status = 'Cancelled' WHERE id = ? AND user_id = ? AND status = 'Pending'"
+        );
+        $upd->bind_param("ii", $cancel_order_id, $current_user_id);
+        $upd->execute();
+        $upd->close();
+
+        // Bước 3: Hoàn kho
+        // - COD: đã trừ kho khi đặt → phải cộng lại
+        // - MoMo: chưa trừ kho → KHÔNG cộng
+        // - NULL (đơn cũ trước khi có cột payment_method): giả định COD → cộng lại
+        $pm = $order_info['payment_method'] ?? 'cod';
+        if ($pm !== 'momo') {
+            $its = $conn->prepare("SELECT product_id, quantity FROM order_items WHERE order_id = ?");
+            $its->bind_param("i", $cancel_order_id);
+            $its->execute();
+            $its_result = $its->get_result();
+            while ($item = $its_result->fetch_assoc()) {
+                $rs = $conn->prepare("UPDATE products SET stock = stock + ? WHERE id = ?");
+                $rs->bind_param("ii", $item['quantity'], $item['product_id']);
+                $rs->execute();
+                $rs->close();
+            }
+            $its->close();
+        }
+
+        // Bước 4: Thông báo
+        $type       = 'order_status';
+        $message    = 'You have cancelled order #' . $cancel_order_id . '.';
+        $created_at = date('Y-m-d H:i:s');
+        $noti_stmt  = $conn->prepare(
+            "INSERT INTO notifications (user_id, target_user_id, order_id, type, message, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        );
+        $noti_stmt->bind_param("iiisss", $current_user_id, $current_user_id, $cancel_order_id, $type, $message, $created_at);
+        $noti_stmt->execute();
+        $noti_stmt->close();
+    }
+
     header("Location: orderhistory.php?status=Pending");
     exit;
 }
@@ -52,37 +88,48 @@ $valid_status = ['Pending', 'Paid', 'Processing', 'Ready for Delivery', 'Deliver
 if (!in_array($status_filter, $valid_status))
     $status_filter = 'Pending';
 
-$conn->set_charset('utf8');
+$conn->set_charset('utf8mb4');
 $orders = [];
-$sql = "SELECT * FROM orders WHERE user_id = $current_user_id AND status = '$status_filter' ORDER BY order_date DESC";
-$result = $conn->query($sql);
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $orders[] = $row;
-    }
+$ord_stmt = $conn->prepare("SELECT * FROM orders WHERE user_id = ? AND status = ? ORDER BY order_date DESC");
+$ord_stmt->bind_param("is", $current_user_id, $status_filter);
+$ord_stmt->execute();
+$ord_result = $ord_stmt->get_result();
+while ($row = $ord_result->fetch_assoc()) {
+    $orders[] = $row;
 }
+$ord_stmt->close();
 
 // Lấy order_ids để lấy order_items
-$order_ids = array_column($orders, 'id');
+$order_ids   = array_column($orders, 'id');
 $order_items = [];
-$products = [];
-if ($order_ids) {
-    $ids_str = implode(',', array_map('intval', $order_ids));
-    // Lấy order_items
-    $sql = "SELECT * FROM order_items WHERE order_id IN ($ids_str)";
-    $result = $conn->query($sql);
-    while ($row = $result->fetch_assoc()) {
+$products    = [];
+$product_ids = [];
+if (!empty($order_ids)) {
+    // Prepared statement với IN() động
+    $ph    = implode(',', array_fill(0, count($order_ids), '?'));
+    $types = str_repeat('i', count($order_ids));
+    $oi_stmt = $conn->prepare("SELECT * FROM order_items WHERE order_id IN ($ph)");
+    $oi_stmt->bind_param($types, ...array_values($order_ids));
+    $oi_stmt->execute();
+    $oi_result = $oi_stmt->get_result();
+    while ($row = $oi_result->fetch_assoc()) {
         $order_items[$row['order_id']][] = $row;
         $product_ids[] = $row['product_id'];
     }
-    // Lấy thông tin sản phẩm
+    $oi_stmt->close();
+
     if (!empty($product_ids)) {
-        $product_ids_str = implode(',', array_map('intval', array_unique($product_ids)));
-        $sql = "SELECT * FROM products WHERE id IN ($product_ids_str)";
-        $result = $conn->query($sql);
-        while ($row = $result->fetch_assoc()) {
+        $unique_pids = array_values(array_unique($product_ids));
+        $ph2    = implode(',', array_fill(0, count($unique_pids), '?'));
+        $types2 = str_repeat('i', count($unique_pids));
+        $pr_stmt = $conn->prepare("SELECT * FROM products WHERE id IN ($ph2)");
+        $pr_stmt->bind_param($types2, ...$unique_pids);
+        $pr_stmt->execute();
+        $pr_result = $pr_stmt->get_result();
+        while ($row = $pr_result->fetch_assoc()) {
             $products[$row['id']] = $row;
         }
+        $pr_stmt->close();
     }
 }
 $conn->close();
@@ -244,9 +291,8 @@ $conn->close();
                 echo 'active'; ?>">Paid</a>
             <a href="?status=Processing" class="<?php if ($status_filter == 'Processing')
                 echo 'active'; ?>">Processing</a>
-            <a href="?status=Ready for Delivery"
-                class="<?php if ($status_filter == 'Ready for Delivery')
-                    echo 'active'; ?>">Ready</a>
+            <a href="?status=Ready for Delivery" class="<?php if ($status_filter == 'Ready for Delivery')
+                echo 'active'; ?>">Ready</a>
             <a href="?status=Delivering" class="<?php if ($status_filter == 'Delivering')
                 echo 'active'; ?>">Delivering</a>
             <a href="?status=Completed" class="<?php if ($status_filter == 'Completed')
@@ -297,12 +343,19 @@ $conn->close();
                                 ?>
                                 <div class="product-row">
                                     <?php if (strtolower($order['status']) === 'pending'): ?>
+                                        <!-- Nút Pay Now cho đơn Pending (chưa thanh toán) -->
+                                        <a href="pay.php?repay=<?php echo $order['id']; ?>"
+                                           class="feedback-btn"
+                                           style="margin-left:12px; background:#ae5f5f; padding:6px 14px; font-size:.9rem; text-decoration:none; color:#fff; border-radius:6px; display:inline-block;">
+                                           💳 Pay Now
+                                        </a>
                                         <form method="post" action="" style="display:inline;">
                                             <input type="hidden" name="cancel_order_id" value="<?php echo $order['id']; ?>">
-                                            <button type="submit" class="feedback-btn"
-                                                style="margin-left:12px; background: none; width: 50px"
-                                                onclick="return confirm('Are you sure you want to cancel this order?');"><img
-                                                    src="/assets/img/check.png" width=100%></button>
+                                            <button type="submit"
+                                                style="margin-left:8px; background:#fff; color:#c0392b; border:1.5px solid #c0392b; border-radius:6px; padding:6px 14px; font-size:.9rem; cursor:pointer;"
+                                                onclick="return confirm('Bạn có chắc muốn hủy đơn hàng #<?php echo $order['id']; ?>?');">
+                                                ✕ Cancel
+                                            </button>
                                         </form>
                                     <?php endif; ?>
 

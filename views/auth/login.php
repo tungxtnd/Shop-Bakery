@@ -4,9 +4,9 @@ session_start();
 include '../../connectdb.php';
 
 $error = '';
-$referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '/homepage.php';
+$referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '/index.php';
 if (strpos($referer, 'register.php') !== false) {
-    $redirect = '/homepage.php';
+    $redirect = '/index.php';
 } else {
     $redirect = isset($_GET['redirect']) ? $_GET['redirect'] : $referer;
 }
