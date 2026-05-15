@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         }
 
         .breadcrumbs a {
-            color: #e75480;
+            color: #d17c7c;
             text-decoration: none;
         }
 
@@ -135,7 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         }
 
         h2 {
-            color: #e75480;
+            color: #d17c7c;
             margin-bottom: 22px;
             text-align: center;
             letter-spacing: 0.5px;
@@ -165,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         }
 
         ul.navbar li a.visited {
-            background-color: #e75480;
+            background-color: #d17c7c;
             color: black;
         }
 
@@ -211,13 +211,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
-            border: 2.5px solid #e75480;
+            border: 2.5px solid #d17c7c;
             background: #faf6f8;
         }
 
         .avatar-box .username {
             margin-top: 12px;
-            color: #e75480;
+            color: #d17c7c;
             font-weight: 600;
             font-size: 1.13em;
         }
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         }
 
         .info-table th {
-            color: #e75480;
+            color: #d17c7c;
             width: 120px;
             font-weight: 500;
         }
@@ -255,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         }
 
         .btn {
-            background: #e75480;
+            background: #d17c7c;
             color: #fff;
             border: none;
             border-radius: 6px;
@@ -269,13 +269,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         }
 
         .btn:hover {
-            background: #d84372;
+            background: #b16868;
         }
 
         .btn-secondary {
             background: #faf6f8;
-            color: #e75480;
-            border: 1.5px solid #e75480;
+            color: #d17c7c;
+            border: 1.5px solid #d17c7c;
         }
 
         .btn-secondary:hover {
@@ -287,7 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         }
 
         .form-title {
-            color: #e75480;
+            color: #d17c7c;
             font-size: 1.08em;
             margin-bottom: 10px;
         }
@@ -299,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         label {
             display: block;
             margin-bottom: 6px;
-            color: #e75480;
+            color: #d17c7c;
             font-weight: 500;
         }
 
@@ -319,7 +319,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
         input[type="text"]:focus,
         input[type="password"]:focus,
         textarea:focus {
-            border-color: #e75480;
+            border-color: #d17c7c;
             outline: none;
         }
 
@@ -414,7 +414,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_password'])) {
             <h2>My Account</h2>
             <div class="profile-info">
                 <div class="avatar-box">
-                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['full_name']); ?>&background=faf6f8&color=e75480&size=128"
+                    <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['full_name']); ?>&background=faf6f8&color=d17c7c&size=128"
                         alt="Avatar">
                     <div class="username"><?php echo htmlspecialchars($user['full_name']); ?></div>
                 </div>

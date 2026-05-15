@@ -38,12 +38,12 @@ $stmt->close();
     <style>
         body { background: #f8f8f8; font-family: 'Segoe UI', Arial, sans-serif; }
         .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px #eee; padding: 32px; }
-        h2 { color: #e75480; text-align: center; }
+        h2 { color: #d17c7c; text-align: center; }
         table { width: 100%; border-collapse: collapse; margin-top: 24px; }
         th, td { padding: 12px 8px; border-bottom: 1px solid #f0f0f0; text-align: left; }
-        th { background: #f8f8f8; color: #e75480; }
+        th { background: #f8f8f8; color: #d17c7c; }
         .noti-type-order_status { color: #1e90ff; }
-        .noti-type-admin_message { color: #e75480; }
+        .noti-type-admin_message { color: #d17c7c; }
         .noti-type-review { color: #2ecc40; }
         .noti-type-login, .noti-type-logout { color: #888; }
         .noti-date { font-size: 0.98em; color: #888; }

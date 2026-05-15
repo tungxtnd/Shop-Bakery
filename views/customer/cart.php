@@ -82,7 +82,7 @@ $result = $stmt->get_result();
         }
 
         h2 {
-            color: #e75480;
+            color: #8B5A2B;
         }
 
         table {
@@ -99,8 +99,8 @@ $result = $stmt->get_result();
         }
 
         th {
-            background: #faf6f8;
-            color: #e75480;
+            background: #FDF8F5;
+            color: #8B5A2B;
         }
 
         img {
@@ -111,7 +111,7 @@ $result = $stmt->get_result();
         }
 
         .remove-btn {
-            background: #e75480;
+            background: #8B5A2B;
             color: #fff;
             border: none;
             border-radius: 4px;
@@ -121,12 +121,13 @@ $result = $stmt->get_result();
         }
 
         .remove-btn:hover {
-            background: #d84372;
+            background: #6D4621;
         }
 
         .checkout-btn {
+            display: inline-block;
             margin-top: 24px;
-            background: #e75480;
+            background: #8B5A2B;
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -137,7 +138,7 @@ $result = $stmt->get_result();
         }
 
         .checkout-btn:hover {
-            background: #d84372;
+            background: #6D4621;
         }
 
         .empty-cart {
@@ -230,8 +231,7 @@ $result = $stmt->get_result();
                         MoMo</label>
                     <label><input type="radio" name="payment_method_select" value="cod"> Cash on delivery</label>
                 </div>
-                <a href="#" onclick="submitCheckout(event)" class="checkout-btn"
-                    style="text-decoration:none; margin-left:20px;">Checkout</a>
+                <a href="#" onclick="submitCheckout(event)" class="checkout-btn" style="text-decoration:none;">Checkout</a>
             </form>
             <?php /* Form chỉ gửi danh sách item IDs. pay.php sẽ hiển thị form nhập thông tin giao hàng */ ?>
             <form id="checkout-form" method="post" action="pay.php" style="display:none;">
